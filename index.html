@@ -7,7 +7,8 @@
         <script src="js/three.js"></script>
         <script src="js/TrackballControls.js"></script>
         <script src="js/Detector.js"></script>
-        <script src="js/cannon.js"></script>
+        <script src="js/itemData.js"></script>
+        <script src="js/models.js"></script>
         
         <script>
         
@@ -52,26 +53,44 @@
                 // Code from three.js scene creation example.
                 // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
                 scene = new THREE.Scene(); // Create new scene
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); 
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000); 
                 camera.position.z = 450;
                 renderer = new THREE.WebGLRenderer();
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 document.body.appendChild(renderer.domElement);
 
-                renderer.setClearColor(0x9BCEE1)
+//                renderer.setClearColor(0x9BCEE1)
+                renderer.setClearColor(0xffffff)
                 // Code from three.js ambient light example:
                 // https://threejs.org/docs/index.html#api/lights/AmbientLight
-                let ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                let ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
                 scene.add(ambientLight);
-
-                // Code from three.js point light example:
-                // https://threejs.org/docs/index.html#api/lights/PointLight
-                let pointLight = new THREE.PointLight(0xffffff, 1.0);
-                pointLight.position.set(50, 50, 50);
-                scene.add(pointLight);
+                
+                var lightPosition = new THREE.Vector3(25, 30, -50);
+                var directionalLightIntensity = 0.4;
+                var directionalLightColour = 0xFFFFFF;
+                var shadowFrustum = 50;
+                var shadowMapWidth = 1024;
+                var shadowMapHeight = 1024;
+                var directionalLight = new THREE.DirectionalLight(directionalLightColour, directionalLightIntensity);
+                directionalLight.position.copy(lightPosition);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.right = shadowFrustum;
+                directionalLight.shadow.camera.left = -shadowFrustum;
+                directionalLight.shadow.camera.top = shadowFrustum;
+                directionalLight.shadow.camera.bottom = -shadowFrustum;
+                directionalLight.shadow.mapSize.width = shadowMapWidth;
+                directionalLight.shadow.mapSize.height = shadowMapHeight;
+                scene.add(directionalLight);
+                
+//                // Code from three.js point light example:
+//                // https://threejs.org/docs/index.html#api/lights/PointLight
+//                let pointLight = new THREE.PointLight(0xffffff, 1.75);
+//                pointLight.position.set(lightPosition);
+//                scene.add(pointLight);
 
                 
-                let size = 4;
+                let size = 6;
                 let bottom = -30;
                 let left = -575;
 //                let increment = 96 / size;
@@ -81,13 +100,69 @@
                 for (let w = 0; w < size; w++){
                     for(let i = 0; i < size; i++){
                         let checker = checkerboard(size, z=i, w) // Construct 2D checkerboard planes
-                        checker.position.set(left + w*horizontalIncrement, bottom + i*verticalIncrement, 0)
+                        checker.position.set(0, bottom + i*verticalIncrement, left + w*horizontalIncrement)
                         rotateObject(checker, -90, 0, 0)
                         scene.add(checker)
                     }
                 }
                 
                 
+                
+                
+                
+                
+                
+                const blackMaterial = new THREE.MeshPhongMaterial({
+                    color: 0x110C11,
+                    reflectivity: 0.1,
+                    shininess: 20,
+                    shading: THREE.SmoothShading,
+                    transparent: true,
+                    opacity: 0.9
+                });
+
+                const whiteMaterial = new THREE.MeshPhongMaterial({
+                    color: 0xFCF6E3,
+                    reflectivity: 10,
+                    shininess: 25,
+                    shading: THREE.SmoothShading,
+                    transparent: true,
+                    opacity: 0.9
+                    
+                });
+                
+                const redMaterial = new THREE.MeshPhongMaterial({
+                    color: 0xff0000,
+                    reflectivity: 10,
+                    shininess: 25,
+                    shading: THREE.SmoothShading,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                
+                // create loading manager to load in all our models
+//                var manager = new THREE.LoadingManager();
+//                manager.onLoad = init;
+//                var loader = new THREE.JSONLoader(manager);
+//                const modelsDirectory = 'models/'
+//                
+//                items.forEach(item =>{
+//                    loader.load(modelsDirectory + item.model, function(geometry, materials) {
+//                        var material = item.board ? new THREE.MeshFaceMaterial(materials) :
+//                                item.black ? redMaterial : whiteMaterial;
+//                        var obj = new THREE.Mesh(geometry, material);
+//                        obj.position.set(item.position.x, item.position.y, item.position.z);
+//                        obj.rotation.set(THREE.Math.degToRad(item.rotation.x), THREE.Math.degToRad(item.rotation.y),
+//                            THREE.Math.degToRad(item.rotation.z));
+//                        obj.castShadow = true;
+//                        obj.receiveShadow = true;
+//                        
+//                        obj.scale.set(4, 4, 4)
+//                        scene.add(obj);
+//                    });
+//                });
+//                
+//                
             }
 
             function checkerboard(segments=8, z=0, w=0, opacity=0.5){
@@ -141,6 +216,7 @@
                 controls.staticMoving = false;
 
                 controls.dynamicDampingFactor = 0.25; // set dampening factor
+//                controls.maxDistance = 2500
 
             }
 
