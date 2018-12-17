@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        
+		<title>4D Chess</title>
+        
+        <script src="js/three.js"></script>
+        <script src="js/TrackballControls.js"></script>
+        <script src="js/Detector.js"></script>
+        <script src="js/cannon.js"></script>
+        
+        <script>
+        
+            // when the window loads, execute the function named 'init', which initalizes the simulation
+            window.onload = function(){
+
+                if(Detector.webgl){
+
+                    init();
+                    requestAnimationFrame(frame);
+
+                } else {
+
+                    var warning = Detector.getWebGLErrorMessage();
+                    document.getElementById('container').appendChild(warning);
+
+                }
+
+            };
+
+            // declare global variables
+            let scene;
+            let camera;
+            let renderer;
+            let controls;
+
+            function init(){
+                
+                initTHREE();
+                initControls();
+                
+                // begin the simulation loop
+                requestAnimationFrame(frame);
+
+            }
+
+            //
+            // Functionality provided by three.js:
+            // 
+            function initTHREE(){
+
+                // Code from three.js scene creation example.
+                // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
+                scene = new THREE.Scene(); // Create new scene
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); 
+                camera.position.z = 450;
+                renderer = new THREE.WebGLRenderer();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.body.appendChild(renderer.domElement);
+
+                renderer.setClearColor(0x9BCEE1)
+                // Code from three.js ambient light example:
+                // https://threejs.org/docs/index.html#api/lights/AmbientLight
+                let ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+
+                // Code from three.js point light example:
+                // https://threejs.org/docs/index.html#api/lights/PointLight
+                let pointLight = new THREE.PointLight(0xffffff, 1.0);
+                pointLight.position.set(50, 50, 50);
+                scene.add(pointLight);
+
+                
+                let size = 4;
+                let bottom = -30;
+                let left = -575;
+//                let increment = 96 / size;
+                let verticalIncrement = 200 / size;
+                let horizontalIncrement = 150
+                
+                for (let w = 0; w < size; w++){
+                    for(let i = 0; i < size; i++){
+                        let checker = checkerboard(size, z=i, w) // Construct 2D checkerboard planes
+                        checker.position.set(left + w*horizontalIncrement, bottom + i*verticalIncrement, 0)
+                        rotateObject(checker, -90, 0, 0)
+                        scene.add(checker)
+                    }
+                }
+                
+                
+            }
+
+            function checkerboard(segments=8, z=0, w=0, opacity=0.5){
+                let geometry = new THREE.PlaneGeometry(100, 100, segments, segments)
+                let materialEven = new THREE.MeshBasicMaterial({color: 0xccccfc})
+                let materialOdd = new THREE.MeshBasicMaterial({color: 0x444464})
+                let materials = [materialEven, materialOdd]
+                
+                materials.forEach(m => {
+                    m.transparent = true
+                    m.opacity = opacity
+                    m.side = THREE.DoubleSide;
+                })
+
+                let i = j = 0;
+
+                for(let x = 0; x < segments; x++){
+                  for(let y = 0; y < segments; y++){
+                      i = x * segments + y
+                      j = i * 2
+                      geometry.faces[j].materialIndex = geometry.faces[j + 1].materialIndex = (x + y + z + w) % 2
+                  }
+                }
+
+                //
+                // THREE.MeshFaceMaterial has been renamed to THREE.MultiMaterial
+                //
+//                    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials))
+                return new THREE.Mesh(geometry, new THREE.MultiMaterial(materials))
+            }
+            
+            function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
+                object.rotateX(THREE.Math.degToRad(degreeX));
+                object.rotateY(THREE.Math.degToRad(degreeY));
+                object.rotateZ(THREE.Math.degToRad(degreeZ));
+            }
+            
+            
+            // Initialize the mouse controls provided by:
+            // https://threejs.org/examples/misc_controls_trackball.html
+            function initControls(){
+
+                controls = new THREE.TrackballControls( camera, renderer.domElement );
+
+                controls.rotateSpeed = 1.8; // set rotation/zoom/pan speeds
+                controls.zoomSpeed = 1.5;
+                controls.panSpeed = 0.3;
+
+                controls.noZoom = false; // enable zooming, panning, and smooth panning
+                controls.noPan = false;
+                controls.staticMoving = false;
+
+                controls.dynamicDampingFactor = 0.25; // set dampening factor
+
+            }
+
+            let last = 0;
+            let now = window.performance.now();
+            let dt;
+            let accumulation = 0;
+            const step = 1/60; // update simulation every 1/60 of a second (60 fps)
+
+            function frame() {
+
+                now = window.performance.now(); // store the time when the new frame starts
+                dt = now - last; // calculate the amount of time the last frame took
+                accumulation += Math.min(1, dt/1000);	// increase accumulation by the amount of time the last frame took and limit accumulation time to 1 second.
+
+                keyInputs(); // update mouse input
+
+                // if the accumulated time is larger than the fixed time-step, continue to
+                // update the simulation until it is caught up to real time
+                while(accumulation >= step){
+
+                    update(); // update the simulation
+                    accumulation -= step;
+
+                }
+
+                // render the scene
+                render();
+
+                last = now;
+                requestAnimationFrame(frame); // repeat the loop
+            }
+
+
+
+
+
+
+
+
+            // update mouse controls
+            function keyInputs(){
+
+                controls.update();
+
+            }
+
+            // update the simulation
+            function update(){
+
+
+
+            }
+
+            // Render the simulation
+            function render(){
+
+                // Render the scene using functionality provided by the three.js library
+                // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
+                renderer.render(scene, camera);
+
+            }
+
+
+            // Function getRandomIntenger returns a random integer between lowerBound (inclusive) and upperBound (inclusive)
+            function getRandomInteger(lowerBound, upperBound){
+
+                //          [0, 1)                range                     
+                return Math.random() * (upperBound - lowerBound + 1) + lowerBound;
+
+            }
+
+            // Entity constructor
+            function Entity(mesh, appliedForce){
+
+                // initialize body (physics) and mesh (graphics) components
+                this.mesh = mesh; // three.js mesh
+
+                world.addBody(this.body);
+                scene.add(this.mesh);
+
+            }
+
+
+            Entity.prototype = {
+                
+
+            };
+            
+            Entity.entities = [];
+            
+        </script>
+        
+	</head>
+    <body>
+    </body>
+    
+</html>      
