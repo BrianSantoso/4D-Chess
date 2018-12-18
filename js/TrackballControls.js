@@ -194,6 +194,9 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 			}
 
+//            // Lock the camera up direction
+//            this.object.up.set(0, 1, 0)
+            
 			_movePrev.copy( _moveCurr );
 
 		};

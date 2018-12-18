@@ -46,18 +46,18 @@ const Models = {
             rotation: new THREE.Vector3(0, -90, 0)
         }, {
             name: 'bishop',
-            fileName: 'Knight.model.json',
+            fileName: 'Bishop.model.json',
             rotation: new THREE.Vector3(0, -90, 0)
         }, {
             name: 'knight',
-            fileName: 'Bishop.model.json',
+            fileName: 'Knight.model.json',
             rotation: new THREE.Vector3(0, 90, 0)
         }, {
             name: 'queen',
             fileName: 'Queen.model.json',
             rotation: new THREE.Vector3(0, 0, 0)
         }, {
-            name: 'King',
+            name: 'king',
             fileName: 'King.model.json',
             rotation: new THREE.Vector3(0, 0, 0)
         }
@@ -79,7 +79,7 @@ const Models = {
 //            mesh.scale.set(4, 4, 4)
 //            scene.add(mesh)
 //        });
-//        
+        
         const pieceData = Models.pieceData[Models.pieceIndices[piece]]
         const geometry = Models.geometries[piece]
         let mesh = new THREE.Mesh(geometry, material)
@@ -99,26 +99,25 @@ const Models = {
     pieceIndices: {},
     loadModels: function(){
         
+        // Loads all chess models then calls init when finished
+        
         const manager = new THREE.LoadingManager();
-        manager.onLoad = function(){
-            console.log('Models Loaded')
-        }
+        manager.onLoad = init // Initialize game when finished loading
         const loader = new THREE.JSONLoader(manager);
         
         let index = 0;
         Models.pieceData.forEach(piece => {
             
             const path = Models.directory + piece.fileName
+            
             loader.load(path, function(geometry, materials) {
                 Models.geometries[piece.name] = geometry
             });
             
-            Models.pieceIndices[piece.name] = index
-            index++
+            Models.pieceIndices[piece.name] = index++
+            
         });
         
     }
     
 }
-
-Models.loadModels()

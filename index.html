@@ -7,8 +7,9 @@
         <script src="js/three.js"></script>
         <script src="js/TrackballControls.js"></script>
         <script src="js/Detector.js"></script>
-        <script src="js/itemData.js"></script>
         <script src="js/models.js"></script>
+        <script src="js/GameBoard.js"></script>
+        <script src="js/Piece.js"></script>
         
         <script>
         
@@ -17,8 +18,7 @@
 
                 if(Detector.webgl){
 
-                    init();
-                    requestAnimationFrame(frame);
+                    Models.loadModels(); // Will call init function when finished
 
                 } else {
 
@@ -34,6 +34,7 @@
             let camera;
             let renderer;
             let controls;
+            let gameBoard;
 
             function init(){
                 
@@ -53,7 +54,7 @@
                 // Code from three.js scene creation example.
                 // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
                 scene = new THREE.Scene(); // Create new scene
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000); 
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 9000); 
                 camera.position.z = 450;
                 renderer = new THREE.WebGLRenderer();
                 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -90,109 +91,54 @@
 //                scene.add(pointLight);
 
                 
-                let size = 6;
-                let bottom = -30;
-                let left = -575;
-//                let increment = 96 / size;
-                let verticalIncrement = 200 / size;
-                let horizontalIncrement = 150
-                
-                for (let w = 0; w < size; w++){
-                    for(let i = 0; i < size; i++){
-                        let checker = checkerboard(size, z=i, w) // Construct 2D checkerboard planes
-                        checker.position.set(0, bottom + i*verticalIncrement, left + w*horizontalIncrement)
-                        rotateObject(checker, -90, 0, 0)
-                        scene.add(checker)
-                    }
-                }
-                
-                
-                
-                
-                
-                
-                
-                const blackMaterial = new THREE.MeshPhongMaterial({
-                    color: 0x110C11,
-                    reflectivity: 0.1,
-                    shininess: 20,
-                    shading: THREE.SmoothShading,
-                    transparent: true,
-                    opacity: 0.9
-                });
-
-                const whiteMaterial = new THREE.MeshPhongMaterial({
-                    color: 0xFCF6E3,
-                    reflectivity: 10,
-                    shininess: 25,
-                    shading: THREE.SmoothShading,
-                    transparent: true,
-                    opacity: 0.9
-                    
-                });
-                
-                const redMaterial = new THREE.MeshPhongMaterial({
-                    color: 0xff0000,
-                    reflectivity: 10,
-                    shininess: 25,
-                    shading: THREE.SmoothShading,
-                    transparent: true,
-                    opacity: 0.5
-                });
-                
-                // create loading manager to load in all our models
-//                var manager = new THREE.LoadingManager();
-//                manager.onLoad = init;
-//                var loader = new THREE.JSONLoader(manager);
-//                const modelsDirectory = 'models/'
+//                let size = 6;
+//                let bottom = -30;
+//                let left = -575;
+////                let increment = 96 / size;
+//                let verticalIncrement = 200 / size;
+//                let horizontalIncrement = 150
 //                
-//                items.forEach(item =>{
-//                    loader.load(modelsDirectory + item.model, function(geometry, materials) {
-//                        var material = item.board ? new THREE.MeshFaceMaterial(materials) :
-//                                item.black ? redMaterial : whiteMaterial;
-//                        var obj = new THREE.Mesh(geometry, material);
-//                        obj.position.set(item.position.x, item.position.y, item.position.z);
-//                        obj.rotation.set(THREE.Math.degToRad(item.rotation.x), THREE.Math.degToRad(item.rotation.y),
-//                            THREE.Math.degToRad(item.rotation.z));
-//                        obj.castShadow = true;
-//                        obj.receiveShadow = true;
-//                        
-//                        obj.scale.set(4, 4, 4)
-//                        scene.add(obj);
-//                    });
-//                });
-//                
-//                
+//                for (let w = 0; w < size; w++){
+//                    for(let i = 0; i < size; i++){
+//                        let checker = checkerboard(size, z=i, w) // Construct 2D checkerboard planes
+//                        checker.position.set(0, bottom + i*verticalIncrement, left + w*horizontalIncrement)
+//                        rotateObject(checker, -90, 0, 0)
+//                        scene.add(checker)
+//                    }
+//                }
+                
+                gameBoard = new GameBoard();
+                
             }
 
-            function checkerboard(segments=8, z=0, w=0, opacity=0.5){
-                let geometry = new THREE.PlaneGeometry(100, 100, segments, segments)
-                let materialEven = new THREE.MeshBasicMaterial({color: 0xccccfc})
-                let materialOdd = new THREE.MeshBasicMaterial({color: 0x444464})
-                let materials = [materialEven, materialOdd]
-                
-                materials.forEach(m => {
-                    m.transparent = true
-                    m.opacity = opacity
-                    m.side = THREE.DoubleSide;
-                })
-
-                let i = j = 0;
-
-                for(let x = 0; x < segments; x++){
-                  for(let y = 0; y < segments; y++){
-                      i = x * segments + y
-                      j = i * 2
-                      geometry.faces[j].materialIndex = geometry.faces[j + 1].materialIndex = (x + y + z + w) % 2
-                  }
-                }
-
-                //
-                // THREE.MeshFaceMaterial has been renamed to THREE.MultiMaterial
-                //
-//                    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials))
-                return new THREE.Mesh(geometry, new THREE.MultiMaterial(materials))
-            }
+//            function checkerboard(segments=8, z=0, w=0, opacity=0.5){
+//                let geometry = new THREE.PlaneGeometry(100, 100, segments, segments)
+//                let materialEven = new THREE.MeshBasicMaterial({color: 0xccccfc})
+//                let materialOdd = new THREE.MeshBasicMaterial({color: 0x444464})
+//                let materials = [materialEven, materialOdd]
+//                
+//                materials.forEach(m => {
+//                    m.transparent = true
+//                    m.opacity = opacity
+//                    m.side = THREE.DoubleSide;
+//                })
+//
+//                let i = j = 0;
+//
+//                for(let x = 0; x < segments; x++){
+//                  for(let y = 0; y < segments; y++){
+//                      i = x * segments + y
+//                      j = i * 2
+//                      geometry.faces[j].materialIndex = geometry.faces[j + 1].materialIndex = (x + y + z + w) % 2
+//                  }
+//                }
+//
+//                //
+//                // THREE.MeshFaceMaterial has been renamed to THREE.MultiMaterial
+//                //
+////                    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials))
+//                return new THREE.Mesh(geometry, new THREE.MultiMaterial(materials))
+//            }
             
             function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
                 object.rotateX(THREE.Math.degToRad(degreeX));
@@ -209,13 +155,13 @@
 
                 controls.rotateSpeed = 1.8; // set rotation/zoom/pan speeds
                 controls.zoomSpeed = 1.5;
-                controls.panSpeed = 0.3;
+                controls.panSpeed = 0.45;
 
                 controls.noZoom = false; // enable zooming, panning, and smooth panning
                 controls.noPan = false;
                 controls.staticMoving = false;
 
-                controls.dynamicDampingFactor = 0.25; // set dampening factor
+//                controls.dynamicDampingFactor = 0.25; // set dampening factor
 //                controls.maxDistance = 2500
 
             }
@@ -285,28 +231,9 @@
             function getRandomInteger(lowerBound, upperBound){
 
                 //          [0, 1)                range                     
-                return Math.random() * (upperBound - lowerBound + 1) + lowerBound;
+                return Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
 
             }
-
-            // Entity constructor
-            function Entity(mesh, appliedForce){
-
-                // initialize body (physics) and mesh (graphics) components
-                this.mesh = mesh; // three.js mesh
-
-                world.addBody(this.body);
-                scene.add(this.mesh);
-
-            }
-
-
-            Entity.prototype = {
-                
-
-            };
-            
-            Entity.entities = [];
             
         </script>
         
