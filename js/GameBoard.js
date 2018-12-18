@@ -22,7 +22,7 @@ function GameBoard(n=6){
     this.pieces;
     
     this.initBoard();
-    this.test()
+    this.test(2, this.n-2, 2, 0)
     
     
 }
@@ -133,6 +133,30 @@ GameBoard.prototype = {
         
     },
     
+    showPossibleMoves: function(locations, pieceType){
+        
+        let possibleMovesContainer = new THREE.Object3D()
+        possibleMovesContainer.name = 'possibleMoves'
+        
+        locations.forEach(pos => {
+            
+            coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
+            let shadowPiece = Models.createMesh(pieceType, Models.materials.red, coordinates.x, coordinates.y, coordinates.z)
+            
+            possibleMovesContainer.add(shadowPiece)
+            
+        })
+        
+        scene.add(possibleMovesContainer)
+        
+    },
+    
+    hidePossibleMoves: function(objectName='possibleMoves'){
+        let selectedObject = scene.getObjectByName(objectName);
+        console.log(selectedObject)
+        scene.remove(selectedObject);
+    },
+    
     test: function(x, y, z, w){
         
         if(x == null) x = getRandomInteger(0, this.n)
@@ -142,15 +166,65 @@ GameBoard.prototype = {
         
         console.log(x, y, z, w)
         
-        this.pieces[x][y][z][w] = new King()
+        this.pieces[x][y][z][w] = new Rook()
         
         const p = this.boardCoordinates(x, y, z, w)
-        let mesh = Models.createMesh('king', Models.materials.black)
-        mesh.scale.set(9, 9, 9)
-        mesh.position.set(p.x, p.y, p.z)
+        let mesh = Models.createMesh('rook', Models.materials.black, p.x, p.y, p.z)
         scene.add(mesh)
         
-    }
+        
+        
+        
+//        let pm = this.rayCast(new THREE.Vector4(2, 0, 2, 0), new THREE.Vector4(0, 1, 0, 0))
+//        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
+        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
+        this.showPossibleMoves(pm, 'rook')
+    },
+    
+    rayCast: function(position, direction, getPath=true){
+
+        const start = position.add(direction)
+
+        let x = start.x
+        let y = start.y
+        let z = start.z
+        let w = start.w
+
+        let positions = []
+
+        while(true){
+    
+            // Check if raycast is out of bounds
+            let outOfBounds = (x >= this.n) || (y >= this.n) || (z >= this.n) || (w >= this.n) || (x < 0) || (y < 0) || (z < 0) || (w < 0)
+            if(outOfBounds) break;
+
+            let spot = this.pieces[x][y][z][w]
+            console.log(x, y, z, w)
+            if(spot.team > 0/*is occupied*/){
+                if(spot /*can be captured (AKA opposite team)*/){
+                    positions.push(new THREE.Vector4(x, y, z, w))
+                } else {
+                    // do nothing
+                }
+                break;
+            }
+
+            if(getPath){
+                positions.push(new THREE.Vector4(x, y, z, w))
+            }
+
+            x += direction.x;
+            y += direction.y;
+            z += direction.z;
+            w += direction.w;
+
+        }
+
+        return positions
+
+    },
+    
+    
     
 }
 
@@ -181,4 +255,9 @@ GameBoard.checkerboard = function(segments=8, boardSize=100, z=0, w=0, opacity=0
     //
 //    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials))
     return new THREE.Mesh(geometry, new THREE.MultiMaterial(materials))
+}
+
+function removeEntity(objectName, scene=scene) {
+    var selectedObject = scene.getObjectByName(objectName.name);
+    scene.remove(selectedObject);
 }
