@@ -166,10 +166,10 @@ GameBoard.prototype = {
         
         console.log(x, y, z, w)
         
-        this.pieces[x][y][z][w] = new Rook()
+        this.pieces[x][y][z][w] = new Queen()
         
         const p = this.boardCoordinates(x, y, z, w)
-        let mesh = Models.createMesh('rook', Models.materials.black, p.x, p.y, p.z)
+        let mesh = Models.createMesh('queen', Models.materials.black, p.x, p.y, p.z)
         scene.add(mesh)
         
         
@@ -178,10 +178,10 @@ GameBoard.prototype = {
 //        let pm = this.rayCast(new THREE.Vector4(2, 0, 2, 0), new THREE.Vector4(0, 1, 0, 0))
 //        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
         let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-        this.showPossibleMoves(pm, 'rook')
+        this.showPossibleMoves(pm, 'queen')
     },
     
-    rayCast: function(position, direction, getPath=true){
+    rayCast: function(position, direction, maxIterations=Number.POSITIVE_INFINITY, getPath=true){
 
         const start = position.add(direction)
 
@@ -191,9 +191,11 @@ GameBoard.prototype = {
         let w = start.w
 
         let positions = []
-
-        while(true){
-    
+        let iteration = 0
+        
+        while(iteration < maxIterations){
+            
+            iteration++
             // Check if raycast is out of bounds
             let outOfBounds = (x >= this.n) || (y >= this.n) || (z >= this.n) || (w >= this.n) || (x < 0) || (y < 0) || (z < 0) || (w < 0)
             if(outOfBounds) break;
