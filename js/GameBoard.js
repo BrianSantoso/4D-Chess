@@ -8,7 +8,7 @@
 */
 
 
-function GameBoard(n=8){
+function GameBoard(n=4){
 
     this.n = n;
     this.position = new THREE.Vector3(0, 0, 0);
@@ -22,7 +22,9 @@ function GameBoard(n=8){
     this.pieces;
     
     this.initBoard();
-    this.test(2, this.n-3, 2, 2)
+    
+    let halfN = Math.floor((this.n - 1) / 2)
+    this.test(halfN, halfN, halfN+2, halfN)
     
     
 }
@@ -122,7 +124,7 @@ GameBoard.prototype = {
         
         const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
         
-        const EPSILON = 1e-4
+        const EPSILON = 1
         
         const xShift = x * this.squareSize
         const yShift = y * this.verticalIncrement + EPSILON
@@ -185,14 +187,53 @@ GameBoard.prototype = {
 //        this.spawnPiece(Rook, 0, x+1, y, z, w)
         
         this.spawnPiece(King, 1, x, y, z, w)
-        this.spawnPiece(Queen, 0, x+2, y, z, w)
-        this.spawnPiece(Queen, 0, x-2, y, z, w)
-        this.spawnPiece(Queen, 0, x, y+2, z, w)
-        this.spawnPiece(Queen, 0, x, y-2, z, w)
-        this.spawnPiece(Queen, 0, x, y, z+2, w)
-        this.spawnPiece(Queen, 0, x, y, z-2, w)
-        this.spawnPiece(Queen, 0, x, y, z, w+2)
-        this.spawnPiece(Queen, 0, x, y, z, w-2)
+        this.spawnPiece(King, 0, x+2, y, z, w)
+        
+        this.spawnPiece(Pawn, 0, 0, 0, 1, 0)
+        this.spawnPiece(Pawn, 0, 1, 0, 1, 0)
+        this.spawnPiece(Pawn, 0, 2, 0, 1, 0)
+        this.spawnPiece(Pawn, 0, 3, 0, 1, 0)
+        this.spawnPiece(Pawn, 0, 0, 1, 1, 0)
+        this.spawnPiece(Pawn, 0, 1, 1, 1, 0)
+        this.spawnPiece(Pawn, 0, 2, 1, 1, 0)
+        this.spawnPiece(Pawn, 0, 3, 1, 1, 0)
+        this.spawnPiece(Pawn, 0, 0, 2, 1, 0)
+        this.spawnPiece(Pawn, 0, 1, 2, 1, 0)
+        this.spawnPiece(Pawn, 0, 2, 2, 1, 0)
+        this.spawnPiece(Pawn, 0, 3, 2, 1, 0)
+        this.spawnPiece(Pawn, 0, 0, 3, 1, 0)
+        this.spawnPiece(Pawn, 0, 1, 3, 1, 0)
+        this.spawnPiece(Pawn, 0, 2, 3, 1, 0)
+        this.spawnPiece(Pawn, 0, 3, 3, 1, 0)
+        
+        this.spawnPiece(Pawn, 0, 0, 0, 0, 1)
+        this.spawnPiece(Pawn, 0, 1, 0, 0, 1)
+        this.spawnPiece(Pawn, 0, 2, 0, 0, 1)
+        this.spawnPiece(Pawn, 0, 3, 0, 0, 1)
+        this.spawnPiece(Pawn, 0, 0, 1, 0, 1)
+        this.spawnPiece(Pawn, 0, 1, 1, 0, 1)
+        this.spawnPiece(Pawn, 0, 2, 1, 0, 1)
+        this.spawnPiece(Pawn, 0, 3, 1, 0, 1)
+        this.spawnPiece(Pawn, 0, 0, 2, 0, 1)
+        this.spawnPiece(Pawn, 0, 1, 2, 0, 1)
+        this.spawnPiece(Pawn, 0, 2, 2, 0, 1)
+        this.spawnPiece(Pawn, 0, 3, 2, 0, 1)
+        this.spawnPiece(Pawn, 0, 0, 3, 0, 1)
+        this.spawnPiece(Pawn, 0, 1, 3, 0, 1)
+        this.spawnPiece(Pawn, 0, 2, 3, 0, 1)
+        this.spawnPiece(Pawn, 0, 3, 3, 0, 1)
+        
+        
+        
+        
+//        this.spawnPiece(Queen, 0, x+2, y, z, w)
+//        this.spawnPiece(Queen, 0, x-2, y, z, w)
+//        this.spawnPiece(Queen, 0, x, y+2, z, w)
+//        this.spawnPiece(Queen, 0, x, y-2, z, w)
+//        this.spawnPiece(Queen, 0, x, y, z+2, w)
+//        this.spawnPiece(Queen, 0, x, y, z-2, w)
+//        this.spawnPiece(Queen, 0, x, y, z, w+2)
+//        this.spawnPiece(Queen, 0, x, y, z, w-2)
         
 //        this.spawnPiece(Bishop, 0, x+1, y, z-1, w)
 //        this.pieces[x][y][z][w] = new King()

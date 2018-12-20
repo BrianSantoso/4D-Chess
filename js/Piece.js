@@ -344,8 +344,61 @@ King.prototype.movement = function(board, x, y, z, w, getPath=true){
     return positions
 }
 
+function Pawn(team){
+    Piece.call(this, team)
+    this.type = 'pawn'
+    
+    this.justMovedTwoSpaces = false
+    this.hasMoved = false
+    
+}
 
-//King.prototype = new Piece()
+Pawn.prototype = Object.create(Piece.prototype)
+
+Pawn.prototype.attack = function(board, x, y, z, w){
+    
+    let positions = []
+    
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), false, 1))
+    
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), false, 1))
+    
+    
+    return positions
+    
+}
+
+Pawn.prototype.movement = function(board, x, y, z, w, getPath=true){
+    
+    let positions = []
+    
+    let maxIterations = this.hasMoved ? 1 : 2
+    
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath, maxIterations))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath, maxIterations))
+    
+    return positions
+    
+}
+
+Pawn.isOnPromotionSquare = function(board, x, y, z, w){
+    
+    const length_x = board.length
+    const length_y = board[0].length
+    const length_z = board[0][0].length
+    const length_w = board[0][0][0].length
+    
+    return (z === length_z - 1) && (w === length_w - 1)
+    
+}
 
 Piece.rayCast = function(board, position, direction, getPath=true, maxIterations=Number.POSITIVE_INFINITY){
     

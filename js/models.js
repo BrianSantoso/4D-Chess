@@ -10,7 +10,7 @@ const Models = {
             shininess: 20,
             shading: THREE.SmoothShading,
             transparent: true,
-            opacity: 0.9
+            opacity: 1.0
         }),
     
         white: new THREE.MeshPhongMaterial({
@@ -19,7 +19,7 @@ const Models = {
             shininess: 25,
             shading: THREE.SmoothShading,
             transparent: true,
-            opacity: 0.9
+            opacity: 1.0
 
         }),
     
