@@ -8,7 +8,7 @@
 */
 
 
-function GameBoard(n=6){
+function GameBoard(n=8){
 
     this.n = n;
     this.position = new THREE.Vector3(0, 0, 0);
@@ -22,7 +22,7 @@ function GameBoard(n=6){
     this.pieces;
     
     this.initBoard();
-    this.test(2, this.n-2, 2, 0)
+    this.test(2, this.n-3, 2, 2)
     
     
 }
@@ -157,6 +157,21 @@ GameBoard.prototype = {
         scene.remove(selectedObject);
     },
     
+    spawnPiece: function(pieceTypeConstructor, team, x, y, z, w){
+      
+        const piece = new pieceTypeConstructor(team)
+        this.pieces[x][y][z][w] = piece
+        
+        const worldPosition = this.boardCoordinates(x, y, z, w)
+        const material = team === 0 ? Models.materials.white : Models.materials.black
+        let mesh = Models.createMesh(piece.type, material, worldPosition.x, worldPosition.y, worldPosition.z)
+        scene.add(mesh)
+        
+//        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
+//        this.showPossibleMoves(pm, 'king')
+        
+    },
+    
     test: function(x, y, z, w){
         
         if(x == null) x = getRandomInteger(0, this.n)
@@ -165,12 +180,26 @@ GameBoard.prototype = {
         if(w == null) w = getRandomInteger(0, this.n)
         
         console.log(x, y, z, w)
+//        this.spawnPiece(King, 1, x-1, y, z, w)
+//        this.spawnPiece(Queen, 1, x, y, z, w)
+//        this.spawnPiece(Rook, 0, x+1, y, z, w)
         
-        this.pieces[x][y][z][w] = new Queen()
+        this.spawnPiece(King, 1, x, y, z, w)
+        this.spawnPiece(Queen, 0, x+2, y, z, w)
+        this.spawnPiece(Queen, 0, x-2, y, z, w)
+        this.spawnPiece(Queen, 0, x, y+2, z, w)
+        this.spawnPiece(Queen, 0, x, y-2, z, w)
+        this.spawnPiece(Queen, 0, x, y, z+2, w)
+        this.spawnPiece(Queen, 0, x, y, z-2, w)
+        this.spawnPiece(Queen, 0, x, y, z, w+2)
+        this.spawnPiece(Queen, 0, x, y, z, w-2)
         
-        const p = this.boardCoordinates(x, y, z, w)
-        let mesh = Models.createMesh('queen', Models.materials.black, p.x, p.y, p.z)
-        scene.add(mesh)
+//        this.spawnPiece(Bishop, 0, x+1, y, z-1, w)
+//        this.pieces[x][y][z][w] = new King()
+//        
+//        const p = this.boardCoordinates(x, y, z, w)
+//        let mesh = Models.createMesh('king', Models.materials.black, p.x, p.y, p.z)
+//        scene.add(mesh)
         
         
         
@@ -178,7 +207,7 @@ GameBoard.prototype = {
 //        let pm = this.rayCast(new THREE.Vector4(2, 0, 2, 0), new THREE.Vector4(0, 1, 0, 0))
 //        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
         let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-        this.showPossibleMoves(pm, 'queen')
+        this.showPossibleMoves(pm, this.pieces[x][y][z][w].type)
     },
     
     rayCast: function(position, direction, maxIterations=Number.POSITIVE_INFINITY, getPath=true){
