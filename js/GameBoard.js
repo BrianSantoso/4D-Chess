@@ -18,6 +18,7 @@ function GameBoard(n=4){
     this.verticalIncrement = 100
     this.horizontalGap = this.squareSize * 3
     this.horizontalIncrement = this.n * this.squareSize + this.horizontalGap
+    this.EPSILON = 1
     
     this.pieces;
     
@@ -122,12 +123,12 @@ GameBoard.prototype = {
     
     boardCoordinates: function(x, y, z, w){
         
+        // Get world coordinates from board coordinates
+        
         const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
         
-        const EPSILON = 1
-        
         const xShift = x * this.squareSize
-        const yShift = y * this.verticalIncrement + EPSILON
+        const yShift = y * this.verticalIncrement + this.EPSILON
         const zShift = -(z * this.squareSize + w * this.horizontalIncrement)
         const translation = new THREE.Vector3(xShift, yShift, zShift)
         
@@ -135,16 +136,34 @@ GameBoard.prototype = {
         
     },
     
+    worldCoordinates: function(pos){
+        
+        // Get board coordinates from world coordinates
+        const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
+        pos = pos.clone().sub(zero).sub(this.boardContainer.position)
+        
+        let x = Math.floor(pos.x / this.squareSize)
+        let y = Math.floor(pos.y / this.verticalIncrement)
+        let numGaps = Math.floor(-pos.z / this.horizontalIncrement)
+        let z = Math.floor((-pos.z - (numGaps * this.horizontalIncrement)) / this.squareSize)
+        let w = numGaps
+        
+//        pos.sub(this.boardContainer.position)
+        
+        return new THREE.Vector4(x, y, z, w)
+    },
+    
     showPossibleMoves: function(locations, pieceType){
         
+        this.hidePossibleMoves()
         let possibleMovesContainer = new THREE.Object3D()
         possibleMovesContainer.name = 'possibleMoves'
         
         locations.forEach(pos => {
             
             coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
-            let shadowPiece = Models.createMesh(pieceType, Models.materials.red, coordinates.x, coordinates.y, coordinates.z)
-            
+            let shadowPiece = Models.createMesh(pieceType, Models.materials.green, coordinates.x, coordinates.y, coordinates.z)
+//            scene.add(shadowPiece)
             possibleMovesContainer.add(shadowPiece)
             
         })
@@ -153,9 +172,19 @@ GameBoard.prototype = {
         
     },
     
+    showPossibleMoves2: function(x, y, z, w){
+      
+        const locations = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
+//        console.log(locations)
+        const pieceType = this.pieces[x][y][z][w].type
+        
+        this.showPossibleMoves(locations, pieceType)
+        
+    },
+    
     hidePossibleMoves: function(objectName='possibleMoves'){
         let selectedObject = scene.getObjectByName(objectName);
-        console.log(selectedObject)
+//        console.log(selectedObject)
         scene.remove(selectedObject);
     },
     
@@ -167,7 +196,9 @@ GameBoard.prototype = {
         const worldPosition = this.boardCoordinates(x, y, z, w)
         const material = team === 0 ? Models.materials.white : Models.materials.black
         let mesh = Models.createMesh(piece.type, material, worldPosition.x, worldPosition.y, worldPosition.z)
+        
         scene.add(mesh)
+//        this.boardContainer.add(mesh)
         
 //        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
 //        this.showPossibleMoves(pm, 'king')
@@ -187,7 +218,24 @@ GameBoard.prototype = {
 //        this.spawnPiece(Rook, 0, x+1, y, z, w)
         
         this.spawnPiece(King, 1, x, y, z, w)
-        this.spawnPiece(King, 0, x+2, y, z, w)
+//        this.spawnPiece(King, 0, x+2, y, z, w)
+        
+        this.spawnPiece(Rook, 0, 0, 0, 0, 0)
+        this.spawnPiece(Knight, 0, 1, 0, 0, 0)
+        this.spawnPiece(Knight, 0, 2, 0, 0, 0)
+        this.spawnPiece(Rook, 0, 3, 0, 0, 0)
+        this.spawnPiece(Bishop, 0, 0, 1, 0, 0)
+        this.spawnPiece(Queen, 0, 1, 1, 0, 0)
+        this.spawnPiece(Pawn, 0, 2, 1, 0, 0)
+        this.spawnPiece(Bishop, 0, 3, 1, 0, 0)
+        this.spawnPiece(Bishop, 0, 0, 2, 0, 0)
+        this.spawnPiece(Queen, 0, 1, 2, 0, 0)
+        this.spawnPiece(King, 0, 2, 2, 0, 0)
+        this.spawnPiece(Bishop, 0, 3, 2, 0, 0)
+        this.spawnPiece(Rook, 0, 0, 3, 0, 0)
+        this.spawnPiece(Knight, 0, 1, 3, 0, 0)
+        this.spawnPiece(Knight, 0, 2, 3, 0, 0)
+        this.spawnPiece(Rook, 0, 3, 3, 0, 0)
         
         this.spawnPiece(Pawn, 0, 0, 0, 1, 0)
         this.spawnPiece(Pawn, 0, 1, 0, 1, 0)
@@ -247,60 +295,62 @@ GameBoard.prototype = {
         
 //        let pm = this.rayCast(new THREE.Vector4(2, 0, 2, 0), new THREE.Vector4(0, 1, 0, 0))
 //        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-        this.showPossibleMoves(pm, this.pieces[x][y][z][w].type)
+        
+//        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
+//        this.showPossibleMoves(pm, this.pieces[x][y][z][w].type)
     },
     
-    rayCast: function(position, direction, maxIterations=Number.POSITIVE_INFINITY, getPath=true){
-
-        const start = position.add(direction)
-
-        let x = start.x
-        let y = start.y
-        let z = start.z
-        let w = start.w
-
-        let positions = []
-        let iteration = 0
-        
-        while(iteration < maxIterations){
-            
-            iteration++
-            // Check if raycast is out of bounds
-            let outOfBounds = (x >= this.n) || (y >= this.n) || (z >= this.n) || (w >= this.n) || (x < 0) || (y < 0) || (z < 0) || (w < 0)
-            if(outOfBounds) break;
-
-            let spot = this.pieces[x][y][z][w]
-            console.log(x, y, z, w)
-            if(spot.team > 0/*is occupied*/){
-                if(spot /*can be captured (AKA opposite team)*/){
-                    positions.push(new THREE.Vector4(x, y, z, w))
-                } else {
-                    // do nothing
-                }
-                break;
-            }
-
-            if(getPath){
-                positions.push(new THREE.Vector4(x, y, z, w))
-            }
-
-            x += direction.x;
-            y += direction.y;
-            z += direction.z;
-            w += direction.w;
-
-        }
-
-        return positions
-
-    },
+//    rayCast: function(position, direction, maxIterations=Number.POSITIVE_INFINITY, getPath=true){
+//
+//        const start = position.add(direction)
+//
+//        let x = start.x
+//        let y = start.y
+//        let z = start.z
+//        let w = start.w
+//
+//        let positions = []
+//        let iteration = 0
+//        
+//        while(iteration < maxIterations){
+//            
+//            iteration++
+//            // Check if raycast is out of bounds
+//            let outOfBounds = (x >= this.n) || (y >= this.n) || (z >= this.n) || (w >= this.n) || (x < 0) || (y < 0) || (z < 0) || (w < 0)
+//            if(outOfBounds) break;
+//
+//            let spot = this.pieces[x][y][z][w]
+//            console.log(x, y, z, w)
+//            if(spot.team > 0/*is occupied*/){
+//                if(spot /*can be captured (AKA opposite team)*/){
+//                    positions.push(new THREE.Vector4(x, y, z, w))
+//                } else {
+//                    // do nothing
+//                }
+//                break;
+//            }
+//
+//            if(getPath){
+//                positions.push(new THREE.Vector4(x, y, z, w))
+//            }
+//
+//            x += direction.x;
+//            y += direction.y;
+//            z += direction.z;
+//            w += direction.w;
+//
+//        }
+//
+//        return positions
+//
+//    },
     
     
     
 }
 
 GameBoard.checkerboard = function(segments=8, boardSize=100, z=0, w=0, opacity=0.5){
+    
     let geometry = new THREE.PlaneGeometry(boardSize, boardSize, segments, segments)
     let materialEven = new THREE.MeshBasicMaterial({color: 0xccccfc})
     let materialOdd = new THREE.MeshBasicMaterial({color: 0x444464})

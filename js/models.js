@@ -3,17 +3,16 @@ const Models = {
     SCALE_FACTOR: 9,
     
     materials: {
-        
-        black: new THREE.MeshPhongMaterial({
+        black: {
             color: 0x110C11,
             reflectivity: 0.1,
             shininess: 20,
             shading: THREE.SmoothShading,
             transparent: true,
             opacity: 1.0
-        }),
+        },
     
-        white: new THREE.MeshPhongMaterial({
+        white: {
             color: 0xFCF6E3,
             reflectivity: 10,
             shininess: 25,
@@ -21,17 +20,56 @@ const Models = {
             transparent: true,
             opacity: 1.0
 
-        }),
+        },
     
-        red: new THREE.MeshPhongMaterial({
-            color: 0xff0000,
+        red: {
+            color: 0xFF0000,
             reflectivity: 10,
             shininess: 25,
             shading: THREE.SmoothShading,
             transparent: true,
-            opacity: 0.5,
-            alphaTest: 0.5
-        })
+            opacity: 0.4,
+//            alphaTest: 0.5
+        },
+        
+        green: {
+            color: 0x90EE90,
+            reflectivity: 10,
+            shininess: 25,
+            shading: THREE.SmoothShading,
+            transparent: true,
+            opacity: 0.4,
+//            alphaTest: 0.5
+        }
+        
+//        black: new THREE.MeshPhongMaterial({
+//            color: 0x110C11,
+//            reflectivity: 0.1,
+//            shininess: 20,
+//            shading: THREE.SmoothShading,
+//            transparent: true,
+//            opacity: 1.0
+//        }),
+//    
+//        white: new THREE.MeshPhongMaterial({
+//            color: 0xFCF6E3,
+//            reflectivity: 10,
+//            shininess: 25,
+//            shading: THREE.SmoothShading,
+//            transparent: true,
+//            opacity: 1.0
+//
+//        }),
+//    
+//        red: new THREE.MeshPhongMaterial({
+//            color: 0xFF0000,
+//            reflectivity: 10,
+//            shininess: 25,
+//            shading: THREE.SmoothShading,
+//            transparent: true,
+//            opacity: 0.4,
+////            alphaTest: 0.5
+//        })
         
     },
     
@@ -84,7 +122,7 @@ const Models = {
         
         const pieceData = Models.pieceData[Models.pieceIndices[piece]]
         const geometry = Models.geometries[piece]
-        let mesh = new THREE.Mesh(geometry, material)
+        let mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial(material))
         mesh.position.set(0, 0, 0);
         mesh.rotation.set(pieceData.rotation.x, pieceData.rotation.y, pieceData.rotation.z);
         mesh.castShadow = true;

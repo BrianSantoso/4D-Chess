@@ -10,6 +10,7 @@
         <script src="js/models.js"></script>
         <script src="js/GameBoard.js"></script>
         <script src="js/Piece.js"></script>
+        <script src="js/Mouse.js"></script>
         
         <script>
         
@@ -35,11 +36,13 @@
             let renderer;
             let controls;
             let gameBoard;
+            let mouse;
 
             function init(){
                 
                 initTHREE();
                 initControls();
+                initMouse();
                 
                 // begin the simulation loop
                 requestAnimationFrame(frame);
@@ -207,6 +210,7 @@
             function keyInputs(){
 
                 controls.update();
+                mouse.keyInputs(camera)
 
             }
 
