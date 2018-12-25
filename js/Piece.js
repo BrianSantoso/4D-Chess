@@ -16,33 +16,34 @@ Piece.prototype = {
         
         let positions = []
         // TODO: CHECK IF IT WILL LEAVE KING IN CHECK.
-        if(this.isPinned(board, x, y, z, w))
-            return positions
+//        if(this.isPinned(board, x, y, z, w))
+//            return positions
         
         let possibleMovements = this.movement(board, x, y, z, w)
         let possibleAttacks = this.attack(board, x, y, z, w)
         let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks) // Possible moves
         positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks)
         
+        positions = Piece.removeIllegalMoves(positions, board, x, y, z, w)
         
         return positions
     },
     isPinned: function(board, x, y, z, w){
         
         // temporarily modify the board so that the current piece is missing
-        const team = this.team
-        this.team = -1
-        const inCheck = Piece.inCheck(board, team)
-//        console.log(board[x][y][z][w], inCheck, team)
-        this.team = team
-        return inCheck
-//        let tempBoard = board
-//        tempBoard[x][y][z][w] = new Piece() //empty piece
-//        
-//        const inCheck = !Piece.inCheck(tempBoard, this.team)
-//        console.log('inCheck?', inCheck)
-//        tempBoard[x][y][z][w] = this
+//        const team = this.team
+//        this.team = -1
+//        const inCheck = Piece.inCheck(board, team)
+////        console.log(board[x][y][z][w], inCheck, team)
+//        this.team = team
 //        return inCheck
+        let tempBoard = board
+        tempBoard[x][y][z][w] = new Piece() //empty piece
+        
+        const inCheck = Piece.inCheck(tempBoard, this.team)
+        console.log('inCheck?', inCheck)
+        tempBoard[x][y][z][w] = this
+        return inCheck
         
     },
     setMesh: function(mesh){
@@ -594,4 +595,36 @@ Piece.inCheckmate = function(board, team){
     
     return Piece.inCheck(board, team) && Piece.hasNoMoves(board, team)
     
+}
+
+Piece.removeIllegalMoves = function(positions, board, x, y, z, w){
+    const piece = board[x][y][z][w]
+    const team = piece.team
+    let legalPositions = []
+
+    board[x][y][z][w] = new Piece()
+    
+    positions.forEach(position => {
+        
+        pos_x = position.x
+        pos_y = position.y
+        pos_z = position.z
+        pos_w = position.w
+        
+        const savedPiece = board[pos_x][pos_y][pos_z][pos_w]
+        
+        board[pos_x][pos_y][pos_z][pos_w] = piece
+        
+        if(!Piece.inCheck(board, team)){
+            legalPositions.push(position)
+        }
+        
+        board[pos_x][pos_y][pos_z][pos_w] = savedPiece
+        
+        
+    })
+
+    board[x][y][z][w] = piece
+
+    return legalPositions
 }

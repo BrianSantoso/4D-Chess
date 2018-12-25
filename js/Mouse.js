@@ -141,7 +141,7 @@ function Mouse(){
     this.onClick = function(event){
         
         if(this.SELECTED){
-            console.log(this.SELECTED)
+//            console.log(this.SELECTED)
             
             this.intersects = this.rayCast( gameBoard.possibleMovesContainer.children, camera, gameBoard );
 

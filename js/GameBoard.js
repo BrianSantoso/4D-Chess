@@ -243,6 +243,7 @@ GameBoard.prototype = {
 //        this.spawnPiece(Rook, 0, x+1, y, z, w)
         
         this.spawnPiece(King, 1, x, y, z, w)
+        this.spawnPiece(Queen, 1, x+1, y, z, w)
 //        this.spawnPiece(Knight, 1, x+1, y, z, w)
 //        this.spawnPiece(King, 0, x+2, y, z, w)
         
