@@ -157,7 +157,7 @@ GameBoard.prototype = {
         return new THREE.Vector4(x, y, z, w)
     },
     
-    showPossibleMoves: function(locations, pieceType){
+    showPossibleMoves: function(locations, pieceType, material=Models.materials.green){
         
         this.hidePossibleMoves()
         this.possibleMovesContainer = new THREE.Object3D()
@@ -166,7 +166,7 @@ GameBoard.prototype = {
         locations.forEach(pos => {
             
             coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
-            let shadowPiece = Models.createMesh(pieceType, Models.materials.green, coordinates.x, coordinates.y, coordinates.z)
+            let shadowPiece = Models.createMesh(pieceType, material, coordinates.x, coordinates.y, coordinates.z)
 //            scene.add(shadowPiece)
             this.possibleMovesContainer.add(shadowPiece)
             
@@ -242,8 +242,8 @@ GameBoard.prototype = {
 //        this.spawnPiece(Queen, 1, x, y, z, w)
 //        this.spawnPiece(Rook, 0, x+1, y, z, w)
         
-        this.spawnPiece(King, 1, x, y, z, w)
-        this.spawnPiece(Queen, 1, x+1, y, z, w)
+//        this.spawnPiece(King, 1, x, y, z, w)
+//        this.spawnPiece(Queen, 1, x+1, y, z, w)
 //        this.spawnPiece(Knight, 1, x+1, y, z, w)
 //        this.spawnPiece(King, 0, x+2, y, z, w)
         
@@ -314,6 +314,108 @@ GameBoard.prototype = {
         this.spawnPiece(Pawn, 0, 1, 3, 1, 1)
         this.spawnPiece(Pawn, 0, 2, 3, 1, 1)
         this.spawnPiece(Pawn, 0, 3, 3, 1, 1)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        const l = this.n- 1
+        const m = l - 1
+        
+        this.spawnPiece(Rook, 1, 0, 0, l, l)
+        this.spawnPiece(Knight, 1, 1, 0, l, l)
+        this.spawnPiece(Knight, 1, 2, 0, l, l)
+        this.spawnPiece(Rook, 1, 3, 0, l, l)
+        this.spawnPiece(Bishop, 1, 0, 1, l, l)
+        this.spawnPiece(Queen, 1, 1, 1, l, l)
+        this.spawnPiece(Pawn, 1, 2, 1, l, l)
+        this.spawnPiece(Bishop, 1, 3, 1, l, l)
+        this.spawnPiece(Bishop, 1, 0, 2, l, l)
+        this.spawnPiece(Queen, 1, 1, 2, l, l)
+        this.spawnPiece(King, 1, 2, 2, l, l)
+        this.spawnPiece(Bishop, 1, 3, 2, l, l)
+        this.spawnPiece(Rook, 1, 0, 3, l, l)
+        this.spawnPiece(Knight, 1, 1, 3, l, l)
+        this.spawnPiece(Knight, 1, 2, 3, l, l)
+        this.spawnPiece(Rook, 1, 3, 3, l, l)
+        
+        this.spawnPiece(Pawn, 1, 0, 0, m, l)
+        this.spawnPiece(Pawn, 1, 1, 0, m, l)
+        this.spawnPiece(Pawn, 1, 2, 0, m, l)
+        this.spawnPiece(Pawn, 1, 3, 0, m, l)
+        this.spawnPiece(Pawn, 1, 0, 1, m, l)
+        this.spawnPiece(Pawn, 1, 1, 1, m, l)
+        this.spawnPiece(Pawn, 1, 2, 1, m, l)
+        this.spawnPiece(Pawn, 1, 3, 1, m, l)
+        this.spawnPiece(Pawn, 1, 0, 2, m, l)
+        this.spawnPiece(Pawn, 1, 1, 2, m, l)
+        this.spawnPiece(Pawn, 1, 2, 2, m, l)
+        this.spawnPiece(Pawn, 1, 3, 2, m, l)
+        this.spawnPiece(Pawn, 1, 0, 3, m, l)
+        this.spawnPiece(Pawn, 1, 1, 3, m, l)
+        this.spawnPiece(Pawn, 1, 2, 3, m, l)
+        this.spawnPiece(Pawn, 1, 3, 3, m, l)
+        
+        this.spawnPiece(Pawn, 1, 0, 0, l, m)
+        this.spawnPiece(Pawn, 1, 1, 0, l, m)
+        this.spawnPiece(Pawn, 1, 2, 0, l, m)
+        this.spawnPiece(Pawn, 1, 3, 0, l, m)
+        this.spawnPiece(Pawn, 1, 0, 1, l, m)
+        this.spawnPiece(Pawn, 1, 1, 1, l, m)
+        this.spawnPiece(Pawn, 1, 2, 1, l, m)
+        this.spawnPiece(Pawn, 1, 3, 1, l, m)
+        this.spawnPiece(Pawn, 1, 0, 2, l, m)
+        this.spawnPiece(Pawn, 1, 1, 2, l, m)
+        this.spawnPiece(Pawn, 1, 2, 2, l, m)
+        this.spawnPiece(Pawn, 1, 3, 2, l, m)
+        this.spawnPiece(Pawn, 1, 0, 3, l, m)
+        this.spawnPiece(Pawn, 1, 1, 3, l, m)
+        this.spawnPiece(Pawn, 1, 2, 3, l, m)
+        this.spawnPiece(Pawn, 1, 3, 3, l, m)
+        
+        this.spawnPiece(Pawn, 1, 0, 0, m, m)
+        this.spawnPiece(Pawn, 1, 1, 0, m, m)
+        this.spawnPiece(Pawn, 1, 2, 0, m, m)
+        this.spawnPiece(Pawn, 1, 3, 0, m, m)
+        this.spawnPiece(Pawn, 1, 0, 1, m, m)
+        this.spawnPiece(Pawn, 1, 1, 1, m, m)
+        this.spawnPiece(Pawn, 1, 2, 1, m, m)
+        this.spawnPiece(Pawn, 1, 3, 1, m, m)
+        this.spawnPiece(Pawn, 1, 0, 2, m, m)
+        this.spawnPiece(Pawn, 1, 1, 2, m, m)
+        this.spawnPiece(Pawn, 1, 2, 2, m, m)
+        this.spawnPiece(Pawn, 1, 3, 2, m, m)
+        this.spawnPiece(Pawn, 1, 0, 3, m, m)
+        this.spawnPiece(Pawn, 1, 1, 3, m, m)
+        this.spawnPiece(Pawn, 1, 2, 3, m, m)
+        this.spawnPiece(Pawn, 1, 3, 3, m, m)
         
         
         

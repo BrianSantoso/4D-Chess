@@ -25,6 +25,7 @@ Piece.prototype = {
         
         return positions
     },
+    update: function(board, x0, y0, z0, w0, x1, y1, z1, w1){},
     isPinned: function(board, x, y, z, w){
         
         // temporarily modify the board so that the current piece is missing
@@ -248,48 +249,48 @@ function King(team){
 }
 
 King.prototype = Object.create(Piece.prototype)
-
-King.prototype.getPossibleMoves = function(board, x, y, z, w){
-    
-    // King cannot be pinned but cannot move to an attacked square
-    
-    let positions = []
-
-    let possibleMovements = this.movement(board, x, y, z, w)
-    let possibleAttacks = this.attack(board, x, y, z, w)
-    let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks) // Possible moves
-    positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks)
-
-    for(let i = positions.length - 1; i >= 0; i--){
-//        console.log(i)
-        const position = positions[i]
-        const pieceToSaveType = board[position.x][position.y][position.z][position.w].type
-        
-        const team = this.team
-        this.team = -1
-        this.type = ''
-        
-        const pieceToSaveTeam = board[position.x][position.y][position.z][position.w].team
-        
-        board[position.x][position.y][position.z][position.w].team = team
-        board[position.x][position.y][position.z][position.w].type = 'king'
-        
-        const inCheck = Piece.inCheck(board, team)
-        
-        board[position.x][position.y][position.z][position.w].team = pieceToSaveTeam
-        board[position.x][position.y][position.z][position.w].type = pieceToSaveType
-        
-        this.team = team
-        this.type = 'king'
-        
-        if(inCheck)
-            positions.splice(i, 1)
-        
-    }
-    
-
-    return positions
-}
+//
+//King.prototype.getPossibleMoves = function(board, x, y, z, w){
+//    
+//    // King cannot be pinned but cannot move to an attacked square
+//    
+//    let positions = []
+//
+//    let possibleMovements = this.movement(board, x, y, z, w)
+//    let possibleAttacks = this.attack(board, x, y, z, w)
+//    let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks) // Possible moves
+//    positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks)
+//
+//    for(let i = positions.length - 1; i >= 0; i--){
+////        console.log(i)
+//        const position = positions[i]
+//        const pieceToSaveType = board[position.x][position.y][position.z][position.w].type
+//        
+//        const team = this.team
+//        this.team = -1
+//        this.type = ''
+//        
+//        const pieceToSaveTeam = board[position.x][position.y][position.z][position.w].team
+//        
+//        board[position.x][position.y][position.z][position.w].team = team
+//        board[position.x][position.y][position.z][position.w].type = 'king'
+//        
+//        const inCheck = Piece.inCheck(board, team)
+//        
+//        board[position.x][position.y][position.z][position.w].team = pieceToSaveTeam
+//        board[position.x][position.y][position.z][position.w].type = pieceToSaveType
+//        
+//        this.team = team
+//        this.type = 'king'
+//        
+//        if(inCheck)
+//            positions.splice(i, 1)
+//        
+//    }
+//    
+//
+//    return positions
+//}
 
 King.prototype.movement = function(board, x, y, z, w, getPath=true){
     
@@ -357,21 +358,28 @@ function Pawn(team){
 
 Pawn.prototype = Object.create(Piece.prototype)
 
+Pawn.prototype.update =function(board, x0, y0, z0, w0, x1, y1, z1, w1){
+    
+    this.justMovedTwoSpaces = false
+    
+}
+
 Pawn.prototype.attack = function(board, x, y, z, w){
     
     let positions = []
+    let d = this.team === 0 ? 1 : -1
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, d, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, d, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, d, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, d, 0), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, d), false, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, d), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, d), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, d), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, d), false, 1))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, d), false, 1))
     
     
     return positions
@@ -383,9 +391,10 @@ Pawn.prototype.movement = function(board, x, y, z, w, getPath=true){
     let positions = []
     
     let maxIterations = this.hasMoved ? 1 : 2
+    let d = this.team === 0 ? 1 : -1
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath, maxIterations))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath, maxIterations))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, 0), getPath, maxIterations))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, d), getPath, maxIterations))
     
     return positions
     

@@ -40,6 +40,26 @@ const Models = {
             transparent: true,
             opacity: 0.4,
 //            alphaTest: 0.5
+        },
+        
+        orange: {
+            color: 0xFFA500,
+            reflectivity: 10,
+            shininess: 25,
+            shading: THREE.SmoothShading,
+            transparent: true,
+            opacity: 0.4,
+//            alphaTest: 0.5
+        },
+        
+        blue: {
+            color: 0x00B9FF,
+            reflectivity: 10,
+            shininess: 25,
+            shading: THREE.SmoothShading,
+            transparent: true,
+            opacity: 0.4,
+//            alphaTest: 0.5
         }
         
 //        black: new THREE.MeshPhongMaterial({

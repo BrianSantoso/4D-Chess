@@ -138,6 +138,12 @@ function Mouse(){
 
 
             }
+        } else {
+            let bc = gameBoard.worldCoordinates(this.SELECTED.position)
+            let p = gameBoard.pieces[bc.x][bc.y][bc.z][bc.w]
+            gameBoard.showPossibleMoves(this.possibleMoves, p.type, Models.materials.blue)
+            this.INTERSECTED.material.color.setHex( Models.materials.blue.color );
+            
         }
     }
     
@@ -145,6 +151,7 @@ function Mouse(){
         
         if(this.SELECTED){
 //            console.log(this.SELECTED)
+            
             
             this.intersects = this.rayCast( gameBoard.possibleMovesContainer.children, camera, gameBoard );
 //            this.intersects = this.rayCast( [], camera, gameBoard );
