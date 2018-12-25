@@ -129,7 +129,8 @@ const Models = {
         mesh.receiveShadow = true;
 
         mesh.scale.set(Models.SCALE_FACTOR, Models.SCALE_FACTOR, Models.SCALE_FACTOR)
-        mesh.position.set(x, y,z)
+        mesh.position.set(x, y, z)
+        mesh.canRayCast = true;
         
         return mesh
         

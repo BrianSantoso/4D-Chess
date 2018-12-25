@@ -19,8 +19,11 @@ function Mouse(){
     this.possibleMoves;
     
     this.rayCast = function(objects, camera, gameBoard){
+        
+        const rayCastableObjects = objects.filter(o => o.canRayCast)
         this.rayCaster.setFromCamera( this.pos, camera ); // update the picking ray with the camera and mouse position
         return this.rayCaster.intersectObjects( objects ); // calculate objects intersecting the picking ray
+//        console.log(intersects)
     }
     
     this.keyInputs = function(camera){
@@ -144,6 +147,7 @@ function Mouse(){
 //            console.log(this.SELECTED)
             
             this.intersects = this.rayCast( gameBoard.possibleMovesContainer.children, camera, gameBoard );
+//            this.intersects = this.rayCast( [], camera, gameBoard );
 
             if ( this.intersects.length > 0 ){
                 // if the closest object intersected is not the currently stored intersection object

@@ -8,7 +8,7 @@
 */
 
 
-function GameBoard(n=6){
+function GameBoard(n=4){
 
     this.n = n;
     this.position = new THREE.Vector3(0, 0, 0);
@@ -297,6 +297,23 @@ GameBoard.prototype = {
         this.spawnPiece(Pawn, 0, 1, 3, 0, 1)
         this.spawnPiece(Pawn, 0, 2, 3, 0, 1)
         this.spawnPiece(Pawn, 0, 3, 3, 0, 1)
+        
+        this.spawnPiece(Pawn, 0, 0, 0, 1, 1)
+        this.spawnPiece(Pawn, 0, 1, 0, 1, 1)
+        this.spawnPiece(Pawn, 0, 2, 0, 1, 1)
+        this.spawnPiece(Pawn, 0, 3, 0, 1, 1)
+        this.spawnPiece(Pawn, 0, 0, 1, 1, 1)
+        this.spawnPiece(Pawn, 0, 1, 1, 1, 1)
+        this.spawnPiece(Pawn, 0, 2, 1, 1, 1)
+        this.spawnPiece(Pawn, 0, 3, 1, 1, 1)
+        this.spawnPiece(Pawn, 0, 0, 2, 1, 1)
+        this.spawnPiece(Pawn, 0, 1, 2, 1, 1)
+        this.spawnPiece(Pawn, 0, 2, 2, 1, 1)
+        this.spawnPiece(Pawn, 0, 3, 2, 1, 1)
+        this.spawnPiece(Pawn, 0, 0, 3, 1, 1)
+        this.spawnPiece(Pawn, 0, 1, 3, 1, 1)
+        this.spawnPiece(Pawn, 0, 2, 3, 1, 1)
+        this.spawnPiece(Pawn, 0, 3, 3, 1, 1)
         
         
         

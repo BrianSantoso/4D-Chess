@@ -15,9 +15,6 @@ Piece.prototype = {
     getPossibleMoves: function(board, x, y, z, w){
         
         let positions = []
-        // TODO: CHECK IF IT WILL LEAVE KING IN CHECK.
-//        if(this.isPinned(board, x, y, z, w))
-//            return positions
         
         let possibleMovements = this.movement(board, x, y, z, w)
         let possibleAttacks = this.attack(board, x, y, z, w)
@@ -86,8 +83,8 @@ Bishop.prototype.movement = function(board, x, y, z, w, getPath=true){
     
     let positions = []
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath, getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath, getPath))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath))
+    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath))
     positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), getPath))
     positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), getPath))
     positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), getPath))
@@ -436,7 +433,7 @@ Piece.rayCast = function(board, position, direction, getPath=true, maxIterations
         let spot = board[x][y][z][w]
 //        console.log(x, y, z, w)
         if(spot.team >= 0/*is occupied*/){
-            if(spot.team === oppositeTeam/*can be captured (AKA opposite team)*/){
+            if(spot.team === oppositeTeam && !getPath/*can be captured (AKA opposite team)*/){
                 positions.push(new THREE.Vector4(x, y, z, w))
             } else {
                 // do nothing
