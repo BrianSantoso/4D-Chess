@@ -8,11 +8,13 @@
 */
 
 
-function GameBoard(n=4){
+function GameBoard(n=6){
 
     this.n = n;
     this.position = new THREE.Vector3(0, 0, 0);
     this.boardContainer = new THREE.Object3D();
+    this.piecesContainer = new THREE.Object3D();
+    this.possibleMovesContainer = new THREE.Object3D();
     
     this.squareSize = 50
     this.verticalIncrement = 100
@@ -118,6 +120,8 @@ GameBoard.prototype = {
         }
         
         scene.add(this.boardContainer)
+        scene.add(this.piecesContainer)
+        scene.add(this.possibleMovesContainer)
         
     },
     
@@ -156,19 +160,19 @@ GameBoard.prototype = {
     showPossibleMoves: function(locations, pieceType){
         
         this.hidePossibleMoves()
-        let possibleMovesContainer = new THREE.Object3D()
-        possibleMovesContainer.name = 'possibleMoves'
+        this.possibleMovesContainer = new THREE.Object3D()
+        this.possibleMovesContainer.name = 'possibleMoves'
         
         locations.forEach(pos => {
             
             coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
             let shadowPiece = Models.createMesh(pieceType, Models.materials.green, coordinates.x, coordinates.y, coordinates.z)
 //            scene.add(shadowPiece)
-            possibleMovesContainer.add(shadowPiece)
+            this.possibleMovesContainer.add(shadowPiece)
             
         })
         
-        scene.add(possibleMovesContainer)
+        scene.add(this.possibleMovesContainer)
         
     },
     
@@ -183,9 +187,21 @@ GameBoard.prototype = {
     },
     
     hidePossibleMoves: function(objectName='possibleMoves'){
-        let selectedObject = scene.getObjectByName(objectName);
+//        let selectedObject = scene.getObjectByName(objectName);
 //        console.log(selectedObject)
-        scene.remove(selectedObject);
+//        scene.remove(selectedObject);
+        scene.remove(this.possibleMovesContainer)
+    },
+    
+    move: function(x0, y0, z0, w0, x1, y1, z1, w1){
+        
+        const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
+        this.pieces[x0][y0][z0][w0].mesh.position.set(newMeshCoords.x, newMeshCoords.y, newMeshCoords.z)
+        
+        this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)
+        this.pieces[x1][y1][z1][w1] = this.pieces[x0][y0][z0][w0]
+        this.pieces[x0][y0][z0][w0] = new Piece()
+        
     },
     
     spawnPiece: function(pieceTypeConstructor, team, x, y, z, w){
@@ -196,13 +212,22 @@ GameBoard.prototype = {
         const worldPosition = this.boardCoordinates(x, y, z, w)
         const material = team === 0 ? Models.materials.white : Models.materials.black
         let mesh = Models.createMesh(piece.type, material, worldPosition.x, worldPosition.y, worldPosition.z)
+        if(team === 0) rotateObject(mesh, 0, 180, 0)
         
-        scene.add(mesh)
+        piece.setMesh(mesh)
+        
+        this.piecesContainer.add(mesh)
+        
+        
 //        this.boardContainer.add(mesh)
         
 //        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
 //        this.showPossibleMoves(pm, 'king')
         
+    },
+    
+    inBounds: function(x, y, z, w){
+        return x >= 0 && x < this.n && y >= 0 && y < this.n && z >=0 && z < this.n && w >=0 && w < this.n;
     },
     
     test: function(x, y, z, w){
@@ -218,6 +243,7 @@ GameBoard.prototype = {
 //        this.spawnPiece(Rook, 0, x+1, y, z, w)
         
         this.spawnPiece(King, 1, x, y, z, w)
+//        this.spawnPiece(Knight, 1, x+1, y, z, w)
 //        this.spawnPiece(King, 0, x+2, y, z, w)
         
         this.spawnPiece(Rook, 0, 0, 0, 0, 0)

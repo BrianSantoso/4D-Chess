@@ -2,6 +2,7 @@ function Piece(team=-1){
     
     this.team = team
     this.type = ''
+    this.mesh;
     
 }
 
@@ -43,6 +44,9 @@ Piece.prototype = {
 //        tempBoard[x][y][z][w] = this
 //        return inCheck
         
+    },
+    setMesh: function(mesh){
+        this.mesh = mesh
     }
     
 }

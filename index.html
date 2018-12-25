@@ -12,6 +12,12 @@
         <script src="js/Piece.js"></script>
         <script src="js/Mouse.js"></script>
         
+        <style>
+            body {
+                margin: 0px;
+            }
+        </style>
+        
         <script>
         
             // when the window loads, execute the function named 'init', which initalizes the simulation
@@ -58,6 +64,7 @@
                 // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
                 scene = new THREE.Scene(); // Create new scene
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 9000); 
+//                camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 9000); 
                 camera.position.z = 450;
                 renderer = new THREE.WebGLRenderer();
                 renderer.setSize(window.innerWidth, window.innerHeight);
