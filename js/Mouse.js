@@ -52,11 +52,46 @@ function Mouse(scene, camera, gameBoard){
     
     this.onClick = function(){
         
+        
+        // check for clicking on possible move
+        this.moveSelector.run(this.rayCaster, this.pos)
+        this.moveSelector.select()
+        
+        // if possible move is clicked...
+        if(this.moveSelector.SELECTED){
+            // move the piece
+            const gameBoard = this.gameBoard
+            const boardCoordinates = gameBoard.worldCoordinates(this.pieceSelector.SELECTED.position)
+            const selectedBoardCoordinates = gameBoard.worldCoordinates(this.moveSelector.SELECTED.position)
+            
+            // Check to see if legal for the sake of debugging (can leave out the if statement)
+            if(Piece.arrayContainsVector(this.possibleMoves, selectedBoardCoordinates)){
+                
+                gameBoard.move(boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w, selectedBoardCoordinates.x, selectedBoardCoordinates.y, selectedBoardCoordinates.z, selectedBoardCoordinates.w)
+
+            } else {
+                // Debug error
+                console.error('Move not found in possibleMoves')
+            }
+
+        }
+        
+        
+        
+        
+        // check for piece selection
+        this.pieceSelector.run(this.rayCaster, this.pos)
         this.pieceSelector.select()
         if(this.pieceSelector.SELECTED){
             this.possibleMoves = this.getPossibleMoves(this.pieceSelector.SELECTED)
             this.showPossibleMoves(this.pieceSelector.SELECTED)
+            
+            
+            
         } else {
+            // if not clicking on anything, clear possibleMoves object and hide meshes
+            this.possibleMoves = null
+//                this.possibleMoves.splice(0, this.possibleMoves.length)
             this.gameBoard.hidePossibleMoves()
         }
         
@@ -613,7 +648,7 @@ Selector.prototype = {
         if(this.SELECTED != this.INTERSECTED){
             Selector.unhighlight(this.SELECTED)
         }
-        console.log(this.INTERSECTED)
+        
         this.setSELECTED(this.INTERSECTED)
 //        
         if(this.SELECTED)

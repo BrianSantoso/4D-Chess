@@ -122,6 +122,7 @@ GameBoard.prototype = {
         
         scene.add(this.boardContainer)
         scene.add(this.piecesContainer)
+        this.possibleMovesContainer = new THREE.Object3D()
         scene.add(this.possibleMovesContainer)
         
     },
@@ -161,8 +162,7 @@ GameBoard.prototype = {
     showPossibleMoves: function(locations, pieceType, material=Models.materials.green){
         
         this.hidePossibleMoves()
-        this.possibleMovesContainer = new THREE.Object3D()
-        this.possibleMovesContainer.name = 'possibleMoves'
+//        this.possibleMovesContainer.name = 'possibleMoves'
         
         locations.forEach(pos => {
             
@@ -173,7 +173,6 @@ GameBoard.prototype = {
             
         })
         
-        scene.add(this.possibleMovesContainer)
         
     },
     
@@ -191,7 +190,14 @@ GameBoard.prototype = {
 //        let selectedObject = scene.getObjectByName(objectName);
 //        console.log(selectedObject)
 //        scene.remove(selectedObject);
-        scene.remove(this.possibleMovesContainer)
+        
+        
+        
+//        scene.remove(this.possibleMovesContainer)
+//        this.possibleMovesContainer.removeAll()
+        while(this.possibleMovesContainer.children.length){
+            this.possibleMovesContainer.remove(this.possibleMovesContainer.children[0]);
+        }
     },
     
     move: function(x0, y0, z0, w0, x1, y1, z1, w1){
