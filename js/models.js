@@ -8,7 +8,7 @@ const Models = {
             reflectivity: 0.1,
             shininess: 20,
             shading: THREE.SmoothShading,
-            transparent: true,
+            transparent: false,
             opacity: 1.0
         },
     
@@ -17,7 +17,7 @@ const Models = {
             reflectivity: 10,
             shininess: 25,
             shading: THREE.SmoothShading,
-            transparent: true,
+            transparent: false,
             opacity: 1.0
 
         },
@@ -60,7 +60,7 @@ const Models = {
             transparent: true,
             opacity: 0.4,
 //            alphaTest: 0.5
-        }
+        },
         
 //        black: new THREE.MeshPhongMaterial({
 //            color: 0x110C11,

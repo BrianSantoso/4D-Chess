@@ -1,5 +1,7 @@
 let test = false
-function Mouse(){
+function Mouse(scene, camera, gameBoard){
+    
+    // TODO: Fix window resize
     
     /*
     
@@ -10,11 +12,17 @@ function Mouse(){
     
     */
     
+    this.scene = scene
+    this.camera = camera
+    this.gameBoard = gameBoard
     this.rayCaster = new THREE.Raycaster()
     this.pos = new THREE.Vector2()
     this.intersects;
     this.INTERSECTED; // the object in the scene currently closest to the camera and intersected by the Ray projected from the mouse position  
     this.SELECTED;
+    
+    this.pieceSelector = new Selector(scene, camera, gameBoard, gameBoard.piecesContainer.children)
+    this.moveSelector = new Selector(scene, camera, gameBoard, gameBoard.possibleMovesContainer.children)
     
     this.possibleMoves;
     
@@ -26,7 +34,213 @@ function Mouse(){
 //        console.log(intersects)
     }
     
-    this.keyInputs = function(camera){
+    this.keyInputs = function(scene, camera, gameBoard){
+        
+        this.pieceSelector.run(this.rayCaster, this.pos)
+        this.moveSelector.run(this.rayCaster, this.pos)
+        
+//        const intersects = this.pieceSelector.rayCast(this.rayCaster, this.pos)
+//        if(intersects.length > 0){
+//            const closest = intersects[0].object
+//            this.pieceSelector.setINTERSECTED(closest)
+//        } else {
+//            this.pieceSelector.setINTERSECTED(null)
+//        }
+        
+    }
+    
+    this.onClick = function(){
+        
+        this.pieceSelector.select()
+        if(this.pieceSelector.SELECTED){
+            this.possibleMoves = this.getPossibleMoves(this.pieceSelector.SELECTED)
+            this.showPossibleMoves(this.pieceSelector.SELECTED)
+        } else {
+            this.gameBoard.hidePossibleMoves()
+        }
+        
+    }
+    
+    this.rayCastPossibleMoves = function(scene, camera, gameBoard){
+        
+        const pieceMeshes = gameBoard.possibleMovesContainer.children
+        const intersects = this.rayCast(pieceMeshes, camera, gameBoard)
+        return intersects
+
+        
+    }
+    
+    this.rayCastPieces = function(scene, caemra, gameBoard){
+        const pieceMeshes = gameBoard.piecesContainer.children
+        const intersects = this.rayCast(pieceMeshes, camera, gameBoard)
+        return intersects
+    }
+    
+    this.keyInputsss = function(scene, camera, gameBoard){
+        
+        
+        
+        if(this.SELECTED){
+            
+            const intersects = this.rayCastPossibleMoves(scene, camera, gameBoard)
+            if (intersects.length > 0){
+
+                const closest = intersects[0].object
+
+            } else {
+
+            }
+            
+        } else {
+            const intersects = this.rayCastPieces(scene, camera, gameBoard)
+        
+        
+            if (intersects.length > 0){
+
+                const closest = intersects[0].object
+
+                if(this.INTERSECTED != closest){
+
+                    // reset the previous mesh's color
+                    if(this.INTERSECTED)
+                        this.highlight(this.INTERSECTED, this.INTERSECTED.material.currentHex.getHex())
+    //                    this.INTERSECTED.material.color.setHex(this.INTERSECTED.material.currentHex.getHex())
+
+                    this.INTERSECTED = closest
+                    // 'closest' is guaranteed to be a mesh, meaning this.INTERSECTED will never be null, so the following line is safe:
+    //                this.highlight(this.INTERSECTED, 0xffb347) 
+                    this.highlight(this.INTERSECTED, Models.materials.orange.color) 
+                }
+            } else {
+
+                if(this.INTERSECTED){
+                    this.unhighlight(this.INTERSECTED)
+                }
+                this.INTERSECTED = null;
+
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+    }
+    
+    /* if(this.INTERSECTED){
+        // store reference to closest object as current intersection object
+        this.INTERSECTED = this.intersects[0].object;
+        this.highlight(this.INTERSECTED)
+        
+    }*/
+    this.highlight = function(mesh, color=0x90ee90, saveCurrentColor=true){
+        // mesh is this.INTERSECTED or this.SELECTED
+//        if(mesh)
+//            mesh.material.color.setHex(mesh.material.currentHex);
+        
+        // store color of closest object (for later restoration)
+//        mesh.currentHex = this.INTERSECTED.material.color.getHex();
+        
+        
+        if(!('currentHex' in mesh.material) && saveCurrentColor){
+//            const color = new THREE.Color(0, 0, 0)
+            const color = mesh.material.color.getHex()
+            Object.assign(mesh.material, {currentHex: color})
+        }
+        
+//        if(saveCurrentColor){
+//            mesh.material.currentHex.set(mesh.material.color.getHex())
+//        }
+        
+        // set a new color for closest object
+        mesh.material.color.setHex(color);
+        
+    }
+    
+    this.unhighlight = function(mesh){
+//        console.log(mesh.material.currentHex.getHex())
+        mesh.material.color.setHex(mesh.material.currentHex.getHex());
+        // remove previous intersection object reference
+        //     by setting current intersection object to "nothing"
+        
+    }
+    
+    this.getPossibleMoves = function(mesh){
+        
+        const gameBoard = this.gameBoard
+        
+        let boardCoords = gameBoard.worldCoordinates(mesh.position)
+        let piece = gameBoard.pieces[boardCoords.x][boardCoords.y][boardCoords.z][boardCoords.w]
+        
+        
+        if(piece){
+            
+            return piece.getPossibleMoves(gameBoard.pieces, boardCoords.x, boardCoords.y, boardCoords.z, boardCoords.w)
+            
+        } else {
+            
+            return null
+            
+        }
+        
+    }
+    
+    this.showPossibleMoves = function(mesh){
+        
+        const gameBoard = this.gameBoard
+        
+        let boardCoords = gameBoard.worldCoordinates(mesh.position)
+        let piece = gameBoard.pieces[boardCoords.x][boardCoords.y][boardCoords.z][boardCoords.w]
+        
+        if(piece){
+            gameBoard.showPossibleMoves(this.possibleMoves, piece.type)
+        } else {
+            console.error('Piece not found')
+        }
+        
+    }
+    
+    this.onClicksss = function(event, gameBoard){
+        
+        this.SELECTED = this.INTERSECTED
+        
+        
+        if(this.SELECTED){
+            
+            this.highlight(this.SELECTED, Models.materials.green.color, false)
+            this.possibleMoves = this.getPossibleMoves(this.SELECTED, gameBoard)
+            this.showPossibleMoves(this.SELECTED, gameBoard)
+            
+            if(this.INTERSECTED){
+                
+                
+                
+            } else {
+                
+            }
+        } else {
+            
+            if(false /* clicked on shadow piece*/){
+               
+            } else {
+               gameBoard.hidePossibleMoves()
+            }
+            
+            
+        }
+        
+        
+        
+            
+        console.log(this.SELECTED)
+        
+    }
+    
+    
+    
+    this.keyInputss = function(camera){
         
         if(!this.SELECTED){
             this.intersects = this.rayCast( gameBoard.piecesContainer.children, camera, gameBoard );
@@ -58,8 +272,11 @@ function Mouse(){
 
                     let boardCoordinates = gameBoard.worldCoordinates(this.INTERSECTED.position)
                     let piece = gameBoard.pieces[boardCoordinates.x][boardCoordinates.y][boardCoordinates.z][boardCoordinates.w]
-                    this.possibleMoves = piece.getPossibleMoves(gameBoard.pieces, boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w)
-                    gameBoard.showPossibleMoves(this.possibleMoves, piece.type)
+                    if(piece){
+                        this.possibleMoves = piece.getPossibleMoves(gameBoard.pieces, boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w)
+                        gameBoard.showPossibleMoves(this.possibleMoves, piece.type)
+                    }
+                    
     //                gameBoard.showPossibleMoves2(boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w)
 
                 }
@@ -107,8 +324,12 @@ function Mouse(){
 
                             let boardCoordinates = gameBoard.worldCoordinates(this.INTERSECTED.position)
                             let piece = gameBoard.pieces[boardCoordinates.x][boardCoordinates.y][boardCoordinates.z][boardCoordinates.w]
-                            this.possibleMoves = piece.getPossibleMoves(gameBoard.pieces, boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w)
-                            gameBoard.showPossibleMoves(this.possibleMoves, piece.type)
+                            if(piece){
+                                console.log(boardCoordinates, piece)
+                                this.possibleMoves = piece.getPossibleMoves(gameBoard.pieces, boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w)
+                                gameBoard.showPossibleMoves(this.possibleMoves, piece.type)
+                            }
+                            
 
                         }
 
@@ -147,7 +368,9 @@ function Mouse(){
         }
     }
     
-    this.onClick = function(event){
+    
+    
+    this.onClickk = function(event){
         
         if(this.SELECTED){
 //            console.log(this.SELECTED)
@@ -291,14 +514,104 @@ function Mouse(){
     
     document.addEventListener('click', function(e){
         
-        this.onClick(e);
+        this.onClick(e, gameBoard);
         
     }.bind(this), false);
     
 }
 
+function Selector(scene, camera, gameBoard, designatedRayCastContainer){
+    this.scene = scene
+    this.camera = camera
+    this.gameBoard = gameBoard
+    
+    this.designatedRayCastContainer = designatedRayCastContainer
+    this.INTERSECTED;
+    this.SELECTED;
+}
+
+Selector.highlight = function(mesh, color=0x90ee90, saveCurrentColor=true){
+    // mesh is this.INTERSECTED or this.SELECTED
+//        if(mesh)
+//            mesh.material.color.setHex(mesh.material.currentHex);
+
+    // store color of closest object (for later restoration)
+//        mesh.currentHex = this.INTERSECTED.material.color.getHex();
+
+
+    if(!('currentHex' in mesh.material)){
+        const color = new THREE.Color(0, 0, 0)
+        Object.assign(mesh.material, {currentHex: color})
+    }
+
+    if(saveCurrentColor){
+        // store color of closest object (for later restoration)
+        mesh.material.currentHex.set(mesh.material.color.getHex())
+    }
+
+    // set a new color for closest object
+    mesh.material.color.setHex(color);
+
+}
+    
+Selector.unhighlight = function(mesh){
+//        console.log(mesh.material.currentHex.getHex())
+    mesh.material.color.setHex(mesh.material.currentHex.getHex());
+    // remove previous intersection object reference
+    //     by setting current intersection object to "nothing"
+
+}
+
+Selector.rayCast = function(rayCaster, pos, objects, camera, gameBoard){
+    
+    const rayCastableObjects = objects.filter(o => o.canRayCast)
+    rayCaster.setFromCamera(pos, camera); // update the picking ray with the camera and mouse position
+    return rayCaster.intersectObjects(objects); // calculate objects intersecting the picking ray
+    
+}
+
+Selector.prototype = {
+    setINTERSECTED: function(intersected){
+        
+        // reset the previous mesh's color
+        if(this.INTERSECTED)
+            Selector.highlight(this.INTERSECTED, this.INTERSECTED.material.currentHex.getHex())
+
+        this.INTERSECTED = intersected // closest intersected
+        
+        if(this.INTERSECTED)
+            Selector.highlight(this.INTERSECTED, Models.materials.orange.color)
+    },
+    setSELECTED: function(selected){
+        this.SELECTED = selected
+    },
+    rayCast: function(rayCaster, pos){
+        const pieceMeshes = this.designatedRayCastContainer
+        const intersects = Selector.rayCast(rayCaster, pos, pieceMeshes, this.camera, this.gameBoard)
+        return intersects
+    },
+    run: function(rayCaster, pos){
+        
+        const intersects = this.rayCast(rayCaster, pos)
+        if(intersects.length > 0){
+            const closest = intersects[0].object
+            this.setINTERSECTED(closest)
+        } else {
+            this.setINTERSECTED(null)
+        }
+        
+    },
+    select: function(){
+        this.setSELECTED(this.INTERSECTED)
+    }
+    
+    
+}
+
+
+
 function initMouse(){
     
-    mouse = new Mouse()
+    mouse = new Mouse(scene, camera, gameBoard)
     
 }

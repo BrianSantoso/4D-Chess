@@ -11,6 +11,7 @@
         <script src="js/GameBoard.js"></script>
         <script src="js/Piece.js"></script>
         <script src="js/Mouse.js"></script>
+        <script src="js/Animation.js"></script>
         
         <style>
             body {
@@ -43,6 +44,7 @@
             let controls;
             let gameBoard;
             let mouse;
+            let animationQueue = []
 
             function init(){
                 
@@ -77,7 +79,8 @@
                 let ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
                 scene.add(ambientLight);
                 
-                var lightPosition = new THREE.Vector3(25, 30, -50);
+//                var lightPosition = new THREE.Vector3(25, 30, -50);
+                var lightPosition = new THREE.Vector3(0, 30, -50);
                 var directionalLightIntensity = 0.4;
                 var directionalLightColour = 0xFFFFFF;
                 var shadowFrustum = 50;
@@ -200,7 +203,7 @@
                 }
 
                 // render the scene
-                render();
+                render(scene, camera);
 
                 last = now;
                 requestAnimationFrame(frame); // repeat the loop
@@ -217,7 +220,7 @@
             function keyInputs(){
 
                 controls.update();
-                mouse.keyInputs(camera)
+                mouse.keyInputs(scene, camera, gameBoard)
 
             }
 
@@ -229,8 +232,16 @@
             }
 
             // Render the simulation
-            function render(){
+            function render(scene, camera){
 
+                if(animationQueue.length > 0){
+                    console.log(animationQueue[0])
+                    animationQueue[0].execute()
+                    animationQueue.shift()
+                }
+                
+                
+                
                 // Render the scene using functionality provided by the three.js library
                 // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
                 renderer.render(scene, camera);

@@ -114,6 +114,7 @@ GameBoard.prototype = {
                 
                 let checker = GameBoard.checkerboard(this.n, this.n * this.squareSize, z=i, w) // Construct 2D checkerboard planes
                 checker.position.set(0, bottom + i*this.verticalIncrement, left - w*this.horizontalIncrement)
+//                console.log(checker.position, this.horizontalIncrement)
                 rotateObject(checker, -90, 0, 0)
                 this.boardContainer.add(checker)
             }
@@ -194,9 +195,12 @@ GameBoard.prototype = {
     },
     
     move: function(x0, y0, z0, w0, x1, y1, z1, w1){
-        
+        const piece = this.pieces[x0][y0][z0][w0]
+        const currentMeshCoords = piece.mesh.position
         const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
-        this.pieces[x0][y0][z0][w0].mesh.position.set(newMeshCoords.x, newMeshCoords.y, newMeshCoords.z)
+        const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, 12)
+        Animation.addToQueue(animationQueue, piece.mesh, interpolatedCoords)
+//        this.pieces[x0][y0][z0][w0].mesh.position.set(newMeshCoords.x, newMeshCoords.y, newMeshCoords.z)
         
         this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)
         this.pieces[x1][y1][z1][w1] = this.pieces[x0][y0][z0][w0]
