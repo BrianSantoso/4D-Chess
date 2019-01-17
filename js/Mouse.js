@@ -36,8 +36,9 @@ function Mouse(scene, camera, gameBoard){
     
     this.keyInputs = function(scene, camera, gameBoard){
         
-        this.pieceSelector.run(this.rayCaster, this.pos)
-        this.moveSelector.run(this.rayCaster, this.pos)
+//        if(!this.pieceSelector.SELECTED)
+        this.pieceSelector.run(this.rayCaster, this.pos, highlight=!this.pieceSelector.SELECTED)
+//        this.moveSelector.run(this.rayCaster, this.pos, highlight=false)
         
 //        const intersects = this.pieceSelector.rayCast(this.rayCaster, this.pos)
 //        if(intersects.length > 0){
@@ -530,7 +531,7 @@ function Selector(scene, camera, gameBoard, designatedRayCastContainer){
     this.SELECTED;
 }
 
-Selector.highlight = function(mesh, color=0x90ee90, saveCurrentColor=true){
+Selector.highlight = function(mesh, color=0x90ee90){
     // mesh is this.INTERSECTED or this.SELECTED
 //        if(mesh)
 //            mesh.material.color.setHex(mesh.material.currentHex);
@@ -542,12 +543,13 @@ Selector.highlight = function(mesh, color=0x90ee90, saveCurrentColor=true){
     if(!('currentHex' in mesh.material)){
         const color = new THREE.Color(0, 0, 0)
         Object.assign(mesh.material, {currentHex: color})
-    }
-
-    if(saveCurrentColor){
-        // store color of closest object (for later restoration)
         mesh.material.currentHex.set(mesh.material.color.getHex())
     }
+
+//    if(saveCurrentColor){
+//        // store color of closest object (for later restoration)
+//        mesh.material.currentHex.set(mesh.material.color.getHex())
+//    }
 
     // set a new color for closest object
     mesh.material.color.setHex(color);
@@ -556,7 +558,8 @@ Selector.highlight = function(mesh, color=0x90ee90, saveCurrentColor=true){
     
 Selector.unhighlight = function(mesh){
 //        console.log(mesh.material.currentHex.getHex())
-    mesh.material.color.setHex(mesh.material.currentHex.getHex());
+    if(mesh && mesh.material.currentHex)
+        mesh.material.color.setHex(mesh.material.currentHex.getHex());
     // remove previous intersection object reference
     //     by setting current intersection object to "nothing"
 
@@ -571,15 +574,16 @@ Selector.rayCast = function(rayCaster, pos, objects, camera, gameBoard){
 }
 
 Selector.prototype = {
-    setINTERSECTED: function(intersected){
+    setINTERSECTED: function(intersected, highlight){
         
         // reset the previous mesh's color
-        if(this.INTERSECTED)
-            Selector.highlight(this.INTERSECTED, this.INTERSECTED.material.currentHex.getHex())
-
+        if(this.INTERSECTED && highlight) // prevent reset when selected
+//            Selector.highlight(this.INTERSECTED, this.INTERSECTED.material.currentHex.getHex())
+            Selector.unhighlight(this.INTERSECTED)
+        
         this.INTERSECTED = intersected // closest intersected
         
-        if(this.INTERSECTED)
+        if(this.INTERSECTED && highlight)
             Selector.highlight(this.INTERSECTED, Models.materials.orange.color)
     },
     setSELECTED: function(selected){
@@ -590,19 +594,30 @@ Selector.prototype = {
         const intersects = Selector.rayCast(rayCaster, pos, pieceMeshes, this.camera, this.gameBoard)
         return intersects
     },
-    run: function(rayCaster, pos){
-        
+    run: function(rayCaster, pos, highlight){
+//        console.log(highlight)
         const intersects = this.rayCast(rayCaster, pos)
         if(intersects.length > 0){
             const closest = intersects[0].object
-            this.setINTERSECTED(closest)
+            this.setINTERSECTED(closest, highlight)
         } else {
-            this.setINTERSECTED(null)
+            this.setINTERSECTED(null, highlight)
         }
         
     },
     select: function(){
+//        if(this.SELECTED != this.INTERSECTED)
+////            Selector.highlight(this.SELECTED, this.SELECTED.material.currentHex.getHex())
+//            Selector.unhighlight(this.SELECTED) // reset color of currently selected piece (if it exists, there's a safeguard)
+//            
+        if(this.SELECTED != this.INTERSECTED){
+            Selector.unhighlight(this.SELECTED)
+        }
+        console.log(this.INTERSECTED)
         this.setSELECTED(this.INTERSECTED)
+//        
+        if(this.SELECTED)
+            Selector.highlight(this.SELECTED, Models.materials.orange.color)
     }
     
     
