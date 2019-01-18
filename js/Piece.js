@@ -8,7 +8,7 @@ function Piece(team=-1){
 
 Piece.prototype = {
     
-    movement: function(board, x, y, z, w, getPath=true){},
+    movement: function(board, x, y, z, w, getPath=true){return null},
     attack: function(board, x, y, z, w){
         return this.movement(board, x, y, z, w, false)
     },

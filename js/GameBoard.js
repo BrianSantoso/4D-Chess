@@ -204,8 +204,14 @@ GameBoard.prototype = {
         const piece = this.pieces[x0][y0][z0][w0]
         const currentMeshCoords = piece.mesh.position
         const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
-        const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, 12)
+        
+        const frames = 12
+        const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, frames)
         Animation.addToQueue(animationQueue, piece.mesh, interpolatedCoords)
+        piece.mesh.canRayCast = false
+        animationQueue[animationQueue.length - 1].onAnimate = function(){
+            this.canRayCast = true
+        }.bind(piece.mesh)
 //        this.pieces[x0][y0][z0][w0].mesh.position.set(newMeshCoords.x, newMeshCoords.y, newMeshCoords.z)
         
         this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)

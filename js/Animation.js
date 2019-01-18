@@ -2,6 +2,7 @@ function Animation(mesh, coords){
     
     this.mesh = mesh
     this.coords = coords
+    this.onAnimate = function(){}
     
 }
 

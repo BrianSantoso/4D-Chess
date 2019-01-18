@@ -236,6 +236,7 @@
 
                 if(animationQueue.length > 0){
                     console.log(animationQueue[0])
+                    animationQueue[0].onAnimate()
                     animationQueue[0].execute()
                     animationQueue.shift()
                 }
