@@ -16,8 +16,8 @@ Piece.prototype = {
         
         let positions = []
         
-        let possibleMovements = this.movement(board, x, y, z, w)
-        let possibleAttacks = this.attack(board, x, y, z, w)
+        let possibleMovements = this.movement(board, x, y, z, w).map(move => Object.assign(move, {possibleCapture: false}))
+        let possibleAttacks = this.attack(board, x, y, z, w).map(attack => Object.assign(attack, {possibleCapture: true}))
         let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks) // Possible moves
         positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks)
         

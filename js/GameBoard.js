@@ -167,6 +167,9 @@ GameBoard.prototype = {
         locations.forEach(pos => {
             
             coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
+            
+            if(pos.possibleCapture)
+                material = Models.materials.red
             let shadowPiece = Models.createMesh(pieceType, material, coordinates.x, coordinates.y, coordinates.z)
 //            scene.add(shadowPiece)
             this.possibleMovesContainer.add(shadowPiece)

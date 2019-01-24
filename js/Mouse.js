@@ -17,14 +17,12 @@ function Mouse(scene, camera, gameBoard){
     this.gameBoard = gameBoard
     this.rayCaster = new THREE.Raycaster()
     this.pos = new THREE.Vector2()
-    this.intersects;
-    this.INTERSECTED; // the object in the scene currently closest to the camera and intersected by the Ray projected from the mouse position  
-    this.SELECTED;
+    this.possibleMoves;
     
     this.pieceSelector = new Selector(scene, camera, gameBoard, gameBoard.piecesContainer.children)
     this.moveSelector = new Selector(scene, camera, gameBoard, gameBoard.possibleMovesContainer.children)
     
-    this.possibleMoves;
+    
     
 //    this.rayCast = function(objects, camera, gameBoard){
 //        
@@ -59,7 +57,8 @@ function Mouse(scene, camera, gameBoard){
                 
                 gameBoard.move(boardCoordinates.x, boardCoordinates.y, boardCoordinates.z, boardCoordinates.w, selectedBoardCoordinates.x, selectedBoardCoordinates.y, selectedBoardCoordinates.z, selectedBoardCoordinates.w)
 //                return
-
+                
+                
             } else {
                 // Debug error
                 console.error('Move not found in possibleMoves')
@@ -83,7 +82,6 @@ function Mouse(scene, camera, gameBoard){
         } else {
             // if not clicking on anything, clear possibleMoves object and hide meshes
             this.possibleMoves = null
-//                this.possibleMoves.splice(0, this.possibleMoves.length)
             this.gameBoard.hidePossibleMoves()
         }
         
@@ -165,11 +163,14 @@ function Selector(scene, camera, gameBoard, designatedRayCastContainer){
     this.gameBoard = gameBoard
     
     this.designatedRayCastContainer = designatedRayCastContainer
-    this.INTERSECTED;
+    this.INTERSECTED;// the object in the designatedRayCastContainer currently closest to the camera and intersected by the Ray projected from the mouse position  
     this.SELECTED;
 }
 
-Selector.highlight = function(mesh, color=0x90ee90){
+Selector.HOVER_COLOR = Models.materials.orange.color
+Selector.SELECT_COLOR = Models.materials.red.color
+
+Selector.highlight = function(mesh, color){
     // mesh is this.INTERSECTED or this.SELECTED
 //        if(mesh)
 //            mesh.material.color.setHex(mesh.material.currentHex);
@@ -221,7 +222,7 @@ Selector.prototype = {
         this.INTERSECTED = intersected // closest intersected
         
         if(this.INTERSECTED && highlight)
-            Selector.highlight(this.INTERSECTED, Models.materials.orange.color)
+            Selector.highlight(this.INTERSECTED, Selector.HOVER_COLOR)
     },
     setSELECTED: function(selected){
         this.SELECTED = selected
@@ -252,9 +253,9 @@ Selector.prototype = {
         }
         
         this.setSELECTED(this.INTERSECTED)
-//        
+        
         if(this.SELECTED)
-            Selector.highlight(this.SELECTED, Models.materials.orange.color)
+            Selector.highlight(this.SELECTED, Selector.SELECT_COLOR)
     }
     
     
