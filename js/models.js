@@ -5,7 +5,7 @@ const Models = {
     materials: {
         black: {
 //            color: 0x110C11,
-            color: 0x44474d,
+            color: 0x818181,
             reflectivity: 0.1,
             shininess: 20,
             shading: THREE.SmoothShading,
@@ -29,7 +29,7 @@ const Models = {
             shininess: 25,
             shading: THREE.SmoothShading,
             transparent: true,
-            opacity: 0.4,
+            opacity: 0.6,
 //            alphaTest: 0.5
         },
         
@@ -39,8 +39,17 @@ const Models = {
             shininess: 25,
             shading: THREE.SmoothShading,
             transparent: true,
-            opacity: 0.4,
+            opacity: 0.6,
 //            alphaTest: 0.5
+        },
+        
+        darkGreen: {
+            color: 0x006400,
+            reflectivity: 10,
+            shininess: 25,
+            shading: THREE.SmoothShading,
+            transparent: true,
+            opacity: 0.6,
         },
         
         orange: {
