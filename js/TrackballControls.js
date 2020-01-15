@@ -179,7 +179,8 @@ THREE.TrackballControls = function ( object, domElement ) {
 				quaternion.setFromAxisAngle( axis, angle );
 
 				_eye.applyQuaternion( quaternion );
-				_this.object.up.applyQuaternion( quaternion );
+//				_this.object.up.applyQuaternion( quaternion );
+                _this.object.up.applyQuaternion( new THREE.Vector4(0,0,0,1) );
 
 				_lastAxis.copy( axis );
 				_lastAngle = angle;
@@ -190,7 +191,8 @@ THREE.TrackballControls = function ( object, domElement ) {
 				_eye.copy( _this.object.position ).sub( _this.target );
 				quaternion.setFromAxisAngle( _lastAxis, _lastAngle );
 				_eye.applyQuaternion( quaternion );
-				_this.object.up.applyQuaternion( quaternion );
+//				_this.object.up.applyQuaternion( quaternion );
+                _this.object.up.applyQuaternion( new THREE.Vector4(0,0,0,1) );
 
 			}
 
