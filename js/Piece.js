@@ -50,6 +50,12 @@ Piece.prototype = {
     
 }
 
+Piece.prototype.update = function(board, x0, y0, z0, w0, x1, y1, z1, w1){
+    
+    this.hasMoved = true
+    
+}
+
 function Rook(team){
     Piece.call(this, team)
     this.type = 'rook'
@@ -360,7 +366,12 @@ Pawn.prototype = Object.create(Piece.prototype)
 
 Pawn.prototype.update =function(board, x0, y0, z0, w0, x1, y1, z1, w1){
     
-    this.justMovedTwoSpaces = false
+    this.hasMoved = true
+    const moveDistance = Math.abs(x1 - x0) + Math.abs(y1 - y0) + Math.abs(z1 - z0) + Math.abs(w1 - w0)
+    this.justMovedTwoSpaces = moveDistance === 2
+    if (this.justMovedTwoSpaces){
+        console.log('unpeasantable!')
+    }
     
 }
 

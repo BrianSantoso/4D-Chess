@@ -20,6 +20,8 @@ function GameBoard(n=4){
     this.verticalIncrement = 100
     this.horizontalGap = this.squareSize * 3
     this.horizontalIncrement = this.n * this.squareSize + this.horizontalGap
+    this.globalLength = this.horizontalIncrement * (this.n - 1)
+    this.globalHeight = this.verticalIncrement * this.n
     this.EPSILON = 1
     
     this.pieces;
@@ -35,62 +37,11 @@ function GameBoard(n=4){
 GameBoard.prototype = {
     
     initBoard: function(){
-        
-//        let bottom = -30;
-//        let left = -575;
-        
-//        let bottom = 0;
-//        let left = 0;
-//        
-////                let increment = 96 / this.n;
-//        let verticalIncrement = 200 / this.n;
-//        let horizontalIncrement = 150
-//        
-//        for (let w = 0; w < this.n; w++){
-//            for(let i = 0; i < this.n; i++){
-//                let checker = GameBoard.checkerboard(this.n, z=i, w) // Construct 2D checkerboard planes
-//                checker.position.set(0, bottom + i*verticalIncrement, left - w*horizontalIncrement)
-//                rotateObject(checker, -90, 0, 0)
-//                this.boardContainer.add(checker)
-//            }
-//        }
-//        
-//        this.boardContainer.scale.set(3, 3, 3)
-//        
-//        scene.add(this.boardContainer)
-
         //
         // Logic
         //
         
         // Instantiate pieces
-//        this.pieces = new Array(this.n)
-//        for(let x = 0; x < this.n; x++){
-//            this.pieces[x] = new Array(this.n)
-//        }
-//        
-//        for(let x = 0; x < this.n; x++){
-//            for(let y = 0; y < this.n; y++){
-//                this.pieces[x][y] = new Array(this.n)
-//            }
-//        }
-//        
-//        for(let x = 0; x < this.n; x++){
-//            for(let y = 0; y < this.n; y++){
-//                for(let z = 0; y < this.n; z++){
-//                    this.pieces[x][y][z] = new Array(this.n)
-//                }
-//            }
-//        }
-        
-//         this does not work. slice creates shallow copy... copies the array but keeps the same references
-//        let dimension1 = new Array(this.n).fill(0).map(e => new Piece())
-//        let dimension2 = new Array(this.n).fill(0).map(e => dimension1.slice())
-//        let dimension3 = new Array(this.n).fill(0).map(e => dimension2.slice())
-//        let dimension4 = new Array(this.n).fill(0).map(e => dimension3.slice())
-//        
-//        this.pieces = dimension4
-        
         const range = n => [...Array(n)].map((_, i) => i);
         const rangeIn = dims => {
           if (!dims.length) return new Piece();
@@ -114,7 +65,6 @@ GameBoard.prototype = {
                 
                 let checker = GameBoard.checkerboard(this.n, this.n * this.squareSize, z=i, w) // Construct 2D checkerboard planes
                 checker.position.set(0, bottom + i*this.verticalIncrement, left - w*this.horizontalIncrement)
-//                console.log(checker.position, this.horizontalIncrement)
                 rotateObject(checker, -90, 0, 0)
                 this.boardContainer.add(checker)
             }
@@ -203,24 +153,50 @@ GameBoard.prototype = {
         }
     },
     
-    move: function(x0, y0, z0, w0, x1, y1, z1, w1){
+    move: function(x0, y0, z0, w0, x1, y1, z1, w1, team=0){
         const piece = this.pieces[x0][y0][z0][w0]
         const currentMeshCoords = piece.mesh.position
         const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
+        
         
         const frames = 12
         const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, frames)
         Animation.addToQueue(animationQueue, piece.mesh, interpolatedCoords)
         piece.mesh.canRayCast = false
+//        animationQueue[animationQueue.length - 1].onAnimate = function(){
+//            this.canRayCast = true
+//            
+//        }.bind(piece.mesh)
+        
+        
         animationQueue[animationQueue.length - 1].onAnimate = function(){
-            this.canRayCast = true
-        }.bind(piece.mesh)
+            piece.mesh.canRayCast = true
+            if(piece.type === 'pawn'){
+                if(this.isOnPromotionSquare(x1, y1, z1, w1)){
+                    this.piecesContainer.remove(piece.mesh)
+                    this.spawnPiece(Queen, team, x1, y1, z1, w1)
+                }
+            }
+        }.bind(this)
+        
 //        this.pieces[x0][y0][z0][w0].mesh.position.set(newMeshCoords.x, newMeshCoords.y, newMeshCoords.z)
         
         this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)
-        this.pieces[x1][y1][z1][w1] = this.pieces[x0][y0][z0][w0]
+        this.pieces[x1][y1][z1][w1] = piece
         this.pieces[x0][y0][z0][w0] = new Piece()
+        piece.update(this.pieces, x0, y0, z0, w0, x1, y1, z1, w1)
         
+//        if (piece.type == 'pawn'){
+//            if (piece.isOnPromotionSquare(x1, y1, z1, w1)){
+////                this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)
+////                this.pieces[x1][y1][z1][w1] = new Queen()
+//            }
+//        }
+        
+    },
+    
+    isOnPromotionSquare: function(x, y, z, w){
+        return (z === this.n - 1) && (w === this.n - 1)
     },
     
     spawnPiece: function(pieceTypeConstructor, team, x, y, z, w){

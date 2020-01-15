@@ -67,7 +67,7 @@
                 scene = new THREE.Scene(); // Create new scene
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 9000); 
 //                camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 9000); 
-                camera.position.z = 450;
+                camera.position.set(700, 450, -525)
                 renderer = new THREE.WebGLRenderer();
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 document.body.appendChild(renderer.domElement);
@@ -141,8 +141,11 @@
                 controls.noPan = false;
                 controls.staticMoving = false;
 
-//                controls.dynamicDampingFactor = 0.25; // set dampening factor
-//                controls.maxDistance = 2500
+                controls.dynamicDampingFactor = 0.2; // set dampening factor
+                controls.minDistance = 100
+                controls.maxDistance = 2250
+                
+                controls.target.set(0 , gameBoard.globalHeight / 2, -gameBoard.globalLength / 2)
 
             }
 
