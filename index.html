@@ -80,7 +80,9 @@
                 scene.add(ambientLight);
                 
 //                var lightPosition = new THREE.Vector3(25, 30, -50);
-                var lightPosition = new THREE.Vector3(0, 30, -50);
+//                var lightPosition = new THREE.Vector3(0, 300, -50);
+                var lightPosition = new THREE.Vector3(70, 300, -50);
+                var lightPosition = new THREE.Vector3(-70, 300, -50);
                 var directionalLightIntensity = 0.4;
                 var directionalLightColour = 0xFFFFFF;
                 var shadowFrustum = 50;
@@ -102,78 +104,21 @@
 //                let pointLight = new THREE.PointLight(0xffffff, 1.75);
 //                pointLight.position.set(lightPosition);
 //                scene.add(pointLight);
-
                 
-//                let size = 6;
-//                let bottom = -30;
-//                let left = -575;
-////                let increment = 96 / size;
-//                let verticalIncrement = 200 / size;
-//                let horizontalIncrement = 150
-//                
-//                for (let w = 0; w < size; w++){
-//                    for(let i = 0; i < size; i++){
-//                        let checker = checkerboard(size, z=i, w) // Construct 2D checkerboard planes
-//                        checker.position.set(0, bottom + i*verticalIncrement, left + w*horizontalIncrement)
-//                        rotateObject(checker, -90, 0, 0)
-//                        scene.add(checker)
-//                    }
-//                }
-                
-                let materialArray = [];
-                let texture_ft = new THREE.TextureLoader().load( 'skybox/heather_ft.jpg');
-                let texture_bk = new THREE.TextureLoader().load( 'skybox/heather_bk.jpg');
-                let texture_up = new THREE.TextureLoader().load( 'skybox/heather_up.jpg');
-                let texture_dn = new THREE.TextureLoader().load( 'skybox/heather_dn.jpg');
-                let texture_rt = new THREE.TextureLoader().load( 'skybox/heather_rt.jpg');
-                let texture_lf = new THREE.TextureLoader().load( 'skybox/heather_lf.jpg');
-
-                materialArray.push(new THREE.MeshBasicMaterial( { map: texture_ft }));
-                materialArray.push(new THREE.MeshBasicMaterial( { map: texture_bk }));
-                materialArray.push(new THREE.MeshBasicMaterial( { map: texture_up }));
-                materialArray.push(new THREE.MeshBasicMaterial( { map: texture_dn }));
-                materialArray.push(new THREE.MeshBasicMaterial( { map: texture_rt }));
-                materialArray.push(new THREE.MeshBasicMaterial( { map: texture_lf }));
-
-                for (let i = 0; i < 6; i++)
-                  materialArray[i].side = THREE.BackSide;
-
-                let skyboxGeo = new THREE.BoxGeometry( 10000, 10000, 10000);
-                let skybox = new THREE.Mesh( skyboxGeo, materialArray );
-                scene.add( skybox );
+//                const cubeTextureLoader = new THREE.CubeTextureLoader();
+//				cubeTextureLoader.setPath( 'skybox/' );
+//
+//				const cubeTexture = cubeTextureLoader.load( [
+//					"wrath_ft.jpg", "wrath_bk.jpg",
+//					"wrath_up.jpg", "wrath_dn.jpg",
+//					"wrath_rt.jpg", "wrath_lf.jpg"
+//				] );
+//
+//				scene.background = cubeTexture;
                 
                 gameBoard = new GameBoard();
                 
             }
-
-//            function checkerboard(segments=8, z=0, w=0, opacity=0.5){
-//                let geometry = new THREE.PlaneGeometry(100, 100, segments, segments)
-//                let materialEven = new THREE.MeshBasicMaterial({color: 0xccccfc})
-//                let materialOdd = new THREE.MeshBasicMaterial({color: 0x444464})
-//                let materials = [materialEven, materialOdd]
-//                
-//                materials.forEach(m => {
-//                    m.transparent = true
-//                    m.opacity = opacity
-//                    m.side = THREE.DoubleSide;
-//                })
-//
-//                let i = j = 0;
-//
-//                for(let x = 0; x < segments; x++){
-//                  for(let y = 0; y < segments; y++){
-//                      i = x * segments + y
-//                      j = i * 2
-//                      geometry.faces[j].materialIndex = geometry.faces[j + 1].materialIndex = (x + y + z + w) % 2
-//                  }
-//                }
-//
-//                //
-//                // THREE.MeshFaceMaterial has been renamed to THREE.MultiMaterial
-//                //
-////                    return new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials))
-//                return new THREE.Mesh(geometry, new THREE.MultiMaterial(materials))
-//            }
             
             function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
                 object.rotateX(THREE.Math.degToRad(degreeX));

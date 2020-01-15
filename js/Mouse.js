@@ -142,18 +142,37 @@ function Mouse(scene, camera, gameBoard){
     }
     
     
+    let clientClickX, clientClickY;
+
+    renderer.domElement.addEventListener('mousedown', function(ev){
+        clientClickX = ev.clientX;
+        clientClickY = ev.clientY;
+    }.bind(this), false);
+
+    renderer.domElement.addEventListener('mouseup', function (ev){
+        if (ev.target == renderer.domElement) {
+            var x = ev.clientX;
+            var y = ev.clientY;
+            // If the mouse moved since the mousedown then don't consider this a selection
+            EPSILON = 5
+            if( Math.abs(x - clientClickX) > EPSILON || Math.abs(y - clientClickY) > EPSILON )
+                return;
+            
+            this.onClick(ev, gameBoard);
+        }
+    }.bind(this), false);
     
-    document.addEventListener('mousemove', function(e){
+    renderer.domElement.addEventListener('mousemove', function(e){
         
         this.onMove(e);
         
     }.bind(this), false);
     
-    document.addEventListener('click', function(e){
-        
-        this.onClick(e, gameBoard);
-        
-    }.bind(this), false);
+//    document.addEventListener('mouseup', function(e){
+//        
+//        this.onClick(e, gameBoard);
+//        
+//    }.bind(this), false);
     
 }
 
@@ -167,8 +186,8 @@ function Selector(scene, camera, gameBoard, designatedRayCastContainer){
     this.SELECTED;
 }
 
-Selector.HOVER_COLOR = Models.materials.orange.color
-Selector.SELECT_COLOR = Models.materials.red.color
+Selector.HOVER_COLOR = Models.materials.blue.color
+Selector.SELECT_COLOR = Models.materials.blue.color
 
 Selector.highlight = function(mesh, color){
     // mesh is this.INTERSECTED or this.SELECTED

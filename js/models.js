@@ -4,7 +4,8 @@ const Models = {
     
     materials: {
         black: {
-            color: 0x110C11,
+//            color: 0x110C11,
+            color: 0x44474d,
             reflectivity: 0.1,
             shininess: 20,
             shading: THREE.SmoothShading,
