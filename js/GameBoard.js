@@ -153,50 +153,54 @@ GameBoard.prototype = {
         }
     },
     
-    move: function(x0, y0, z0, w0, x1, y1, z1, w1, team=0){
+    move: function(x0, y0, z0, w0, x1, y1, z1, w1){
+		
+		const targetPiece = this.pieces[x1][y1][z1][w1]
+		
         const piece = this.pieces[x0][y0][z0][w0]
         const currentMeshCoords = piece.mesh.position
         const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
         
-        
         const frames = 12
         const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, frames)
         Animation.addToQueue(animationQueue, piece.mesh, interpolatedCoords)
-        piece.mesh.canRayCast = false
-//        animationQueue[animationQueue.length - 1].onAnimate = function(){
-//            this.canRayCast = true
-//            
-//        }.bind(piece.mesh)
-        
+        piece.mesh.canRayCast = false // temporarily disable piece's ability to be found in rayCast
         
         animationQueue[animationQueue.length - 1].onAnimate = function(){
-            piece.mesh.canRayCast = true
-            if(piece.type === 'pawn'){
-                if(this.isOnPromotionSquare(x1, y1, z1, w1)){
-                    this.piecesContainer.remove(piece.mesh)
-                    this.spawnPiece(Queen, team, x1, y1, z1, w1)
-                }
+            piece.mesh.canRayCast = true // re-enable piece's ability to be found in rayCast
+            if(piece.type === 'pawn' && this.isOnPromotionSquare(x1, y1, z1, w1)){
+				// Normal capture logic and animation is still executed,
+				// but here we remove the pawn's sprite and spawn in a queen
+				// Notice that we do not use GameObject.removePiece() method because
+				// it will also remove its game object, which is logic that should 
+				// be separate from graphics
+				this.piecesContainer.remove(piece.mesh)
+				const queenMesh = this.createMesh('queen', piece.team, x1, y1, z1, w1)
+				queen.setMesh(queenMesh)
             }
         }.bind(this)
         
-//        this.pieces[x0][y0][z0][w0].mesh.position.set(newMeshCoords.x, newMeshCoords.y, newMeshCoords.z)
-        
-        this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)
-        this.pieces[x1][y1][z1][w1] = piece
-        this.pieces[x0][y0][z0][w0] = new Piece()
+		this.pieces[x0][y0][z0][w0] = new Piece() // Remove game object from board
+		this.removePiece(x1, y1, z1, w1) // Immediately remove target game object and sprite (do nothing if square is empty)
+        this.pieces[x1][y1][z1][w1] = piece // Replace object in target square with moved piece
         piece.update(this.pieces, x0, y0, z0, w0, x1, y1, z1, w1)
-        
-//        if (piece.type == 'pawn'){
-//            if (piece.isOnPromotionSquare(x1, y1, z1, w1)){
-////                this.piecesContainer.remove(this.pieces[x1][y1][z1][w1].mesh)
-////                this.pieces[x1][y1][z1][w1] = new Queen()
-//            }
-//        }
+		
+		if(piece.type === 'pawn' && this.isOnPromotionSquare(x1, y1, z1, w1)){
+			// Normal capture logic and animation is still executed,
+			// but here we replace the pawn's game object with a Queen game object
+			// Notice that we do not use GameObject.removePiece() method because
+			// it will also remove its mesh, which we only want once the animation
+			// finishes
+			queen = new Queen(piece.team)
+			this.pieces[x1][y1][z1][w1] = queen
+		}
         
     },
     
     isOnPromotionSquare: function(x, y, z, w){
-        return (z === this.n - 1) && (w === this.n - 1)
+		const piece = this.pieces[x][y][z][w]
+		const promotionLoc = piece.team > 0 ? 0 : this.n - 1
+		return z === promotionLoc && w === promotionLoc
     },
     
     spawnPiece: function(pieceTypeConstructor, team, x, y, z, w){
@@ -204,22 +208,31 @@ GameBoard.prototype = {
         const piece = new pieceTypeConstructor(team)
         this.pieces[x][y][z][w] = piece
         
-        const worldPosition = this.boardCoordinates(x, y, z, w)
-        const material = team === 0 ? Models.materials.white : Models.materials.black
-        let mesh = Models.createMesh(piece.type, material, worldPosition.x, worldPosition.y, worldPosition.z)
-        if(team === 0) rotateObject(mesh, 0, 180, 0)
+        const mesh = this.createMesh(piece.type, team, x, y, z, w)
         
         piece.setMesh(mesh)
         
-        this.piecesContainer.add(mesh)
-        
-        
-//        this.boardContainer.add(mesh)
-        
-//        let pm = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-//        this.showPossibleMoves(pm, 'king')
-        
     },
+		
+	createMesh: function(typeString, team, x, y, z, w){ 
+		
+		// Create mesh (without game object), add it to the scene, and return the mesh
+		
+		const worldPos = this.boardCoordinates(x, y, z, w)
+		const material = team === 0 ? Models.materials.white : Models.materials.black
+		const mesh = Models.createMesh(typeString, material, worldPos.x, worldPos.y, worldPos.z)
+		if(team === 0) rotateObject(mesh, 0, 180, 0)
+		this.piecesContainer.add(mesh)
+		
+		return mesh
+		
+	},
+	
+	removePiece: function(x, y, z, w){
+		const piece = this.pieces[x][y][z][w]
+		this.piecesContainer.remove(piece.mesh)
+		this.pieces[x][y][z][w] = new Piece();
+	},
     
     inBounds: function(x, y, z, w){
         return x >= 0 && x < this.n && y >= 0 && y < this.n && z >=0 && z < this.n && w >=0 && w < this.n;
