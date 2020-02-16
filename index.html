@@ -4,6 +4,7 @@
         
 		<title>4D Chess</title>
         
+<!--        <script src="/socket.io/socket.io.js"></script>-->
         <script src="js/three.js"></script>
         <script src="js/TrackballControls.js"></script>
         <script src="js/Detector.js"></script>
@@ -20,6 +21,13 @@
         </style>
         
         <script>
+//            try {
+//				const socket = io()
+//			socket.emit('HW message', 'hello from html!')
+//			} catch(err) {
+//				console.warn('Socket.io lib not found')
+//			}
+            
         
             // when the window loads, execute the function named 'init', which initalizes the simulation
             window.onload = function(){
@@ -47,7 +55,6 @@
             let animationQueue = []
 
             function init(){
-                
                 initTHREE();
                 initControls();
                 initMouse();
@@ -67,44 +74,48 @@
                 scene = new THREE.Scene(); // Create new scene
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 9000); 
 //                camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 9000); 
-                camera.position.set(700, 450, -525)
-                renderer = new THREE.WebGLRenderer();
+                camera.position.set(510, 410, -525)
+                renderer = new THREE.WebGLRenderer({antialias: true});
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 document.body.appendChild(renderer.domElement);
 
-//                renderer.setClearColor(0x9BCEE1)
-                renderer.setClearColor(0xffffff)
+                renderer.setClearColor(0xffffff);
                 // Code from three.js ambient light example:
                 // https://threejs.org/docs/index.html#api/lights/AmbientLight
                 let ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
                 scene.add(ambientLight);
                 
-//                var lightPosition = new THREE.Vector3(25, 30, -50);
-//                var lightPosition = new THREE.Vector3(0, 300, -50);
-                var lightPosition = new THREE.Vector3(70, 300, -50);
-                var lightPosition = new THREE.Vector3(-70, 300, -50);
-                var directionalLightIntensity = 0.4;
-                var directionalLightColour = 0xFFFFFF;
-                var shadowFrustum = 50;
-                var shadowMapWidth = 1024;
-                var shadowMapHeight = 1024;
-                var directionalLight = new THREE.DirectionalLight(directionalLightColour, directionalLightIntensity);
-                directionalLight.position.copy(lightPosition);
-                directionalLight.castShadow = true;
-                directionalLight.shadow.camera.right = shadowFrustum;
-                directionalLight.shadow.camera.left = -shadowFrustum;
-                directionalLight.shadow.camera.top = shadowFrustum;
-                directionalLight.shadow.camera.bottom = -shadowFrustum;
-                directionalLight.shadow.mapSize.width = shadowMapWidth;
-                directionalLight.shadow.mapSize.height = shadowMapHeight;
-                scene.add(directionalLight);
-                
-//                // Code from three.js point light example:
-//                // https://threejs.org/docs/index.html#api/lights/PointLight
-//                let pointLight = new THREE.PointLight(0xffffff, 1.75);
-//                pointLight.position.set(lightPosition);
-//                scene.add(pointLight);
-                
+                let lightPosition1 = new THREE.Vector3(70, 300, -50);
+                let lightPosition2 = new THREE.Vector3(-70, 300, -50);
+                let directionalLightIntensity = 0.4;
+                let directionalLightColour = 0xFFFFFF;
+                let shadowFrustum = 50;
+                let shadowMapWidth = 1024;
+                let shadowMapHeight = 1024;
+                let directionalLight1 = new THREE.DirectionalLight(directionalLightColour, directionalLightIntensity);
+				let directionalLight2 = new THREE.DirectionalLight(directionalLightColour, directionalLightIntensity);
+				directionalLight1.position.set(lightPosition1);
+				
+                directionalLight1.position.copy(lightPosition1);
+                directionalLight1.castShadow = true;
+                directionalLight1.shadow.camera.right = shadowFrustum;
+                directionalLight1.shadow.camera.left = -shadowFrustum;
+                directionalLight1.shadow.camera.top = shadowFrustum;
+                directionalLight1.shadow.camera.bottom = -shadowFrustum;
+                directionalLight1.shadow.mapSize.width = shadowMapWidth;
+                directionalLight1.shadow.mapSize.height = shadowMapHeight;
+                scene.add(directionalLight1);
+				
+//				directionalLight2.position.copy(lightPosition2);
+//                directionalLight2.castShadow = true;
+//                directionalLight2.shadow.camera.right = shadowFrustum;
+//                directionalLight2.shadow.camera.left = -shadowFrustum;
+//                directionalLight2.shadow.camera.top = shadowFrustum;
+//                directionalLight2.shadow.camera.bottom = -shadowFrustum;
+//                directionalLight2.shadow.mapSize.width = shadowMapWidth;
+//                directionalLight2.shadow.mapSize.height = shadowMapHeight;
+//                scene.add(directionalLight2);
+//                
 //                const cubeTextureLoader = new THREE.CubeTextureLoader();
 //				cubeTextureLoader.setPath( 'skybox/' );
 //
@@ -115,7 +126,11 @@
 //				] );
 //
 //				scene.background = cubeTexture;
-                
+//                var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+//				var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+//				var sphere = new THREE.Mesh( geometry, material );
+//				sphere.position.set(0, 0, 0);
+//				scene.add( sphere );
                 gameBoard = new GameBoard();
                 
             }
@@ -145,7 +160,7 @@
                 controls.minDistance = 100
                 controls.maxDistance = 2250
                 
-                controls.target.set(0 , gameBoard.globalHeight / 2, -gameBoard.globalLength / 2)
+                controls.target.set(0 , gameBoard.graphics.globalHeight / 2, -gameBoard.graphics.globalLength / 2)
 
             }
 
@@ -203,9 +218,9 @@
 
             // Render the simulation
             function render(scene, camera){
-
+				
                 if(animationQueue.length > 0){
-                    console.log(animationQueue[0])
+//                    console.log(animationQueue[0])
                     animationQueue[0].onAnimate()
                     animationQueue[0].execute()
                     animationQueue.shift()
