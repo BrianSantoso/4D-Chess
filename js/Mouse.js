@@ -19,18 +19,8 @@ function Mouse(scene, camera, gameBoard){
     this.pos = new THREE.Vector2()
     this.possibleMoves;
     
-    this.pieceSelector = new Selector(scene, camera, gameBoard, gameBoard.piecesContainer.children)
-    this.moveSelector = new Selector(scene, camera, gameBoard, gameBoard.possibleMovesContainer.children)
-    
-    
-    
-//    this.rayCast = function(objects, camera, gameBoard){
-//        
-//        const rayCastableObjects = objects.filter(o => o.canRayCast)
-//        this.rayCaster.setFromCamera( this.pos, camera ); // update the picking ray with the camera and mouse position
-//        return this.rayCaster.intersectObjects( rayCastableObjects ); // calculate objects intersecting the picking ray
-//    }
-    
+    this.pieceSelector = new Selector(scene, camera, gameBoard, gameBoard.graphics.piecesContainer.children)
+    this.moveSelector = new Selector(scene, camera, gameBoard, gameBoard.graphics.possibleMovesContainer.children)
     this.keyInputs = function(scene, camera, gameBoard){
         
         this.pieceSelector.run(this.rayCaster, this.pos, highlight=!this.pieceSelector.SELECTED)
@@ -49,8 +39,8 @@ function Mouse(scene, camera, gameBoard){
         if(this.moveSelector.SELECTED){
             // move the piece
             const gameBoard = this.gameBoard
-            const boardCoordinates = gameBoard.worldCoordinates(this.pieceSelector.SELECTED.position)
-            const selectedBoardCoordinates = gameBoard.worldCoordinates(this.moveSelector.SELECTED.position)
+            const boardCoordinates = gameBoard.graphics.worldCoordinates(this.pieceSelector.SELECTED.position)
+            const selectedBoardCoordinates = gameBoard.graphics.worldCoordinates(this.moveSelector.SELECTED.position)
             
             // Check to see if legal for the sake of debugging (can leave out the if statement)
             if(Piece.arrayContainsVector(this.possibleMoves, selectedBoardCoordinates)){
@@ -66,14 +56,10 @@ function Mouse(scene, camera, gameBoard){
             
         }
         
-        
-        
-        
         // check for piece selection
         this.pieceSelector.run(this.rayCaster, this.pos)
         this.pieceSelector.select()
         if(this.pieceSelector.SELECTED){
-//            console.log(this.pieceSelector.SELECTED.canRayCast)
             this.possibleMoves = this.getPossibleMoves(this.pieceSelector.SELECTED)
             this.showPossibleMoves(this.pieceSelector.SELECTED)
             
@@ -82,7 +68,7 @@ function Mouse(scene, camera, gameBoard){
         } else {
             // if not clicking on anything, clear possibleMoves object and hide meshes
             this.possibleMoves = null
-            this.gameBoard.hidePossibleMoves()
+            this.gameBoard.graphics.hidePossibleMoves()
         }
         
     }
@@ -92,7 +78,7 @@ function Mouse(scene, camera, gameBoard){
         
         const gameBoard = this.gameBoard
         
-        let boardCoords = gameBoard.worldCoordinates(mesh.position)
+        let boardCoords = gameBoard.graphics.worldCoordinates(mesh.position)
         let piece = gameBoard.pieces[boardCoords.x][boardCoords.y][boardCoords.z][boardCoords.w]
         
         if(piece.type === ''){
@@ -117,11 +103,11 @@ function Mouse(scene, camera, gameBoard){
         
         const gameBoard = this.gameBoard
         
-        let boardCoords = gameBoard.worldCoordinates(mesh.position)
+        let boardCoords = gameBoard.graphics.worldCoordinates(mesh.position)
         let piece = gameBoard.pieces[boardCoords.x][boardCoords.y][boardCoords.z][boardCoords.w]
         
         if(piece){
-            gameBoard.showPossibleMoves(this.possibleMoves, piece.type)
+            gameBoard.graphics.showPossibleMoves(this.possibleMoves, piece.type)
         } else {
             console.error('Piece not found')
         }

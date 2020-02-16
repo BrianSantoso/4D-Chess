@@ -2,8 +2,8 @@ function Piece(team=-1){
     
     this.team = team
     this.type = ''
-    this.mesh;
-    
+	this.mesh;
+	
 }
 
 Piece.prototype = {
@@ -14,34 +14,26 @@ Piece.prototype = {
     },
     getPossibleMoves: function(board, x, y, z, w){
         
-        let positions = []
+        let positions = [];
+        let possibleMovements = this.movement(board, x, y, z, w).map(move => Object.assign(move, {possibleCapture: false}));
+        let possibleAttacks = this.attack(board, x, y, z, w).map(attack => Object.assign(attack, {possibleCapture: true}));
+        let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks); // Possible moves
+        positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks);
         
-        let possibleMovements = this.movement(board, x, y, z, w).map(move => Object.assign(move, {possibleCapture: false}))
-        let possibleAttacks = this.attack(board, x, y, z, w).map(attack => Object.assign(attack, {possibleCapture: true}))
-        let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks) // Possible moves
-        positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks)
+        positions = Piece.removeIllegalMoves(positions, board, x, y, z, w);
         
-        positions = Piece.removeIllegalMoves(positions, board, x, y, z, w)
-        
-        return positions
+        return positions;
     },
     update: function(board, x0, y0, z0, w0, x1, y1, z1, w1){},
     isPinned: function(board, x, y, z, w){
         
         // temporarily modify the board so that the current piece is missing
-//        const team = this.team
-//        this.team = -1
-//        const inCheck = Piece.inCheck(board, team)
-////        console.log(board[x][y][z][w], inCheck, team)
-//        this.team = team
-//        return inCheck
-        let tempBoard = board
-        tempBoard[x][y][z][w] = new Piece() //empty piece
+        board[x][y][z][w] = new Piece(); //empty piece
         
-        const inCheck = Piece.inCheck(tempBoard, this.team)
-        console.log('inCheck?', inCheck)
-        tempBoard[x][y][z][w] = this
-        return inCheck
+        const inCheck = Piece.inCheck(board, this.team);
+        console.log('inCheck?', inCheck);
+        board[x][y][z][w] = this;
+        return inCheck;
         
     },
     setMesh: function(mesh){
@@ -255,48 +247,6 @@ function King(team){
 }
 
 King.prototype = Object.create(Piece.prototype)
-//
-//King.prototype.getPossibleMoves = function(board, x, y, z, w){
-//    
-//    // King cannot be pinned but cannot move to an attacked square
-//    
-//    let positions = []
-//
-//    let possibleMovements = this.movement(board, x, y, z, w)
-//    let possibleAttacks = this.attack(board, x, y, z, w)
-//    let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks) // Possible moves
-//    positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks)
-//
-//    for(let i = positions.length - 1; i >= 0; i--){
-////        console.log(i)
-//        const position = positions[i]
-//        const pieceToSaveType = board[position.x][position.y][position.z][position.w].type
-//        
-//        const team = this.team
-//        this.team = -1
-//        this.type = ''
-//        
-//        const pieceToSaveTeam = board[position.x][position.y][position.z][position.w].team
-//        
-//        board[position.x][position.y][position.z][position.w].team = team
-//        board[position.x][position.y][position.z][position.w].type = 'king'
-//        
-//        const inCheck = Piece.inCheck(board, team)
-//        
-//        board[position.x][position.y][position.z][position.w].team = pieceToSaveTeam
-//        board[position.x][position.y][position.z][position.w].type = pieceToSaveType
-//        
-//        this.team = team
-//        this.type = 'king'
-//        
-//        if(inCheck)
-//            positions.splice(i, 1)
-//        
-//    }
-//    
-//
-//    return positions
-//}
 
 King.prototype.movement = function(board, x, y, z, w, getPath=true){
     
