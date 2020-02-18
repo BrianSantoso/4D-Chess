@@ -10,8 +10,9 @@
         <script src="js/Detector.js"></script>
         <script src="js/models.js"></script>
         <script src="js/GameBoard.js"></script>
+		<script src="js/MoveManager.js"></script>
         <script src="js/Piece.js"></script>
-        <script src="js/Mouse.js"></script>
+        <script src="js/Pointer.js"></script>
         <script src="js/Animation.js"></script>
         
         <style>
@@ -51,13 +52,14 @@
             let renderer;
             let controls;
             let gameBoard;
-            let mouse;
+			let moveManager;
+            let pointer;
             let animationQueue = []
 
             function init(){
                 initTHREE();
                 initControls();
-                initMouse();
+                initPointer();
                 
                 // begin the simulation loop
                 requestAnimationFrame(frame);
@@ -126,13 +128,16 @@
 //				] );
 //
 //				scene.background = cubeTexture;
-//                var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+                
+                gameBoard = new GameBoard();
+				moveManager = new MoveManager(gameBoard, 0, false);
+                
+				// Debug Sphere
+//				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
 //				var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 //				var sphere = new THREE.Mesh( geometry, material );
-//				sphere.position.set(0, 0, 0);
+//				sphere.position.set(getCenterPoint(gameBoard.graphics.mesh));
 //				scene.add( sphere );
-                gameBoard = new GameBoard();
-                
             }
             
             function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
@@ -140,7 +145,6 @@
                 object.rotateY(THREE.Math.degToRad(degreeY));
                 object.rotateZ(THREE.Math.degToRad(degreeZ));
             }
-            
             
             // Initialize the mouse controls provided by:
             // https://threejs.org/examples/misc_controls_trackball.html
@@ -205,7 +209,7 @@
             function keyInputs(){
 
                 controls.update();
-                mouse.keyInputs(scene, camera, gameBoard)
+                pointer.keyInputs(scene, camera, gameBoard)
 
             }
 
