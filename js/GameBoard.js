@@ -19,7 +19,6 @@ function GameBoard(n=4){
     let halfN = Math.floor((this.n - 1) / 2)
     this.test(halfN, halfN, halfN+2, halfN)
     
-    
 }
 
 function BoardGraphics(gameBoard){
@@ -27,28 +26,30 @@ function BoardGraphics(gameBoard){
 	this.n = gameBoard.n;
 	this.squareSize = 50
     this.verticalIncrement = 100
-    this.horizontalGap = this.squareSize * 3
+    this.horizontalGap = this.squareSize * 1.75
     this.horizontalIncrement = this.n * this.squareSize + this.horizontalGap
     this.globalLength = this.horizontalIncrement * (this.n - 1)
     this.globalHeight = this.verticalIncrement * this.n
 	this.boardHeight = 5;
     this.EPSILON = 1
 	
+	this.mesh = new THREE.Object3D();
 	this.boardContainer = new THREE.Object3D();
     this.piecesContainer = new THREE.Object3D();
     this.possibleMovesContainer = new THREE.Object3D();
 	this.boardContainer.name = 'boardContainer';
 	this.piecesContainer.name = 'piecesContaier';
 	this.possibleMovesContainer.name = 'possibleMovesContainer';
-	scene.add(this.boardContainer)
-	scene.add(this.piecesContainer)
-	scene.add(this.possibleMovesContainer)
+	this.mesh.add(this.boardContainer)
+	this.mesh.add(this.piecesContainer)
+	this.mesh.add(this.possibleMovesContainer)
+	scene.add(this.mesh);
 	
 	let bottom = 0;
 	let left = 0;
 	for (let w = 0; w < this.n; w++){
 		for(let i = 0; i < this.n; i++){
-			let checker = BoardGraphics.checkerboard(this.n, this.n * this.squareSize, z=i, w) // Construct 2D checkerboard planes
+			let checker = BoardGraphics.checkerboard3d(this.n, this.n * this.squareSize, z=i, w, opacity=0.4, this.boardHeight) // Construct 2D checkerboard planes
 			checker.position.set(0, bottom + i*this.verticalIncrement, left - w*this.horizontalIncrement)
 			rotateObject(checker, -90, 0, 0)
 			this.boardContainer.add(checker)
@@ -169,6 +170,10 @@ BoardGraphics.prototype = {
 	
 	removeMesh: function(piece){
 		this.piecesContainer.remove(piece.mesh);
+	},
+	
+	respawnMesh: function(piece){
+		this.piecesContainer.add(piece.mesh);
 	}
 	
 }
@@ -197,9 +202,15 @@ GameBoard.prototype = {
 		return pieces;
     },
     
+	// GameBoard.move should only be called from MoveManager. All move data received from server should pass through MoveManager.
     move: function(x0, y0, z0, w0, x1, y1, z1, w1){
 		
+		const metaData = {}
+		
 		const targetPiece = this.pieces[x1][y1][z1][w1];
+		if(targetPiece.type){
+			Object.assign(metaData, {captured: true, capturedPiece: targetPiece});
+		}
         const piece = this.pieces[x0][y0][z0][w0];
         
 		this.graphics.moveMesh(piece, x1, y1, z1, w1);
@@ -217,9 +228,32 @@ GameBoard.prototype = {
 			// finishes
 			queen = new Queen(piece.team);
 			this.pieces[x1][y1][z1][w1] = queen;
+			
+			Object.assign(metaData, {promotion: true, newPiece: queen, oldPiece: piece});
 		}
-        
+        return metaData;
     },
+	
+	undo: function(move){
+		const pieceInOriginalLoc = this.pieces[move.x0][move.y0][move.z0][move.w0];
+		if(pieceInOriginalLoc.type){
+			console.error('Unknown error. A piece is already located in original location')
+		}
+		const originalPiece = move.metaData.promotion ? move.metaData.oldPiece : this.pieces[move.x1][move.y1][move.z1][move.w1];
+		this.pieces[move.x0][move.y0][move.z0][move.w0] = originalPiece;
+		
+		const capturedPiece = move.metaData.captured ? move.metaData.capturedPiece : new Piece();
+		if(move.metaData.promotion){
+			this.graphics.respawnMesh(originalPiece);
+			this.removePiece(move.x1, move.y1, move.z1, move.w1); // TODO: THIS IS SCARY. If bugs occur separate the graphics component of removePiece into a new method. The current implementaiton might cause errors...
+		}
+		this.pieces[move.x1][move.y1][move.z1][move.w1] = capturedPiece;
+		
+		if(move.metaData.captured){
+			this.graphics.respawnMesh(capturedPiece); 
+		}
+		this.graphics.moveMesh(originalPiece, move.x0, move.y0, move.z0, move.w0);
+	},
 	
 	applyToAll: function(f){
 		for(let x = 0; x < this.pieces.length; x++){
@@ -426,7 +460,7 @@ GameBoard.prototype = {
         this.spawnPiece(Pawn, 1, 2, 3, m, m)
         this.spawnPiece(Pawn, 1, 3, 3, m, m)
         
-    },
+    }
     
 }
 
@@ -456,6 +490,76 @@ BoardGraphics.checkerboard = function(segments=8, boardSize=100, z=0, w=0, opaci
 	
     return new THREE.Mesh(geometry, new THREE.MultiMaterial(materials))
 //    return new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0x000000}))
+}
+
+BoardGraphics.checkerboard3d = function(segments=8, boardSize=100, z=0, w=0, opacity=0.5, boardHeight=5){
+	
+	const BOARD_HEIGHT = boardHeight;
+	
+	let topGeometry = new THREE.PlaneGeometry(boardSize, boardSize, segments, segments);
+	let bottomGeometry = new THREE.PlaneGeometry(boardSize, boardSize, segments, segments);
+	let materialsTop = [new THREE.MeshBasicMaterial({color: 0xccccfc}), new THREE.MeshBasicMaterial({color: 0x444464})];
+	let materialsBottom = [new THREE.MeshBasicMaterial({color: 0xccccfc}), new THREE.MeshBasicMaterial({color: 0x444464})];
+	materialsTop.forEach(m => {
+        m.transparent = true
+        m.opacity = opacity
+        m.side = THREE.FrontSide;
+    });
+	materialsBottom.forEach(m => {
+        m.transparent = true
+        m.opacity = opacity
+        m.side = THREE.BackSide;
+    });
+	for(let x = 0; x < segments; x++){
+      for(let y = 0; y < segments; y++){
+          i = x * segments + y;
+          j = i * 2;
+          topGeometry.faces[j].materialIndex = topGeometry.faces[j + 1].materialIndex = (x + y + z + w) % 2;
+		  bottomGeometry.faces[j].materialIndex = bottomGeometry.faces[j + 1].materialIndex = (x + y + z + w) % 2
+      }
+    }
+	
+	let topMesh = new THREE.Mesh(topGeometry, new THREE.MultiMaterial(materialsTop));
+	let bottomMesh = new THREE.Mesh(bottomGeometry, new THREE.MultiMaterial(materialsBottom));
+	bottomMesh.position.set(0, 0, -BOARD_HEIGHT);
+	
+	let sideGeometry = new THREE.PlaneGeometry(BOARD_HEIGHT, boardSize, 1, segments);
+	let materialsSide = [new THREE.MeshBasicMaterial({color: 0x444464}), new THREE.MeshBasicMaterial({color: 0xccccfc})];
+	materialsSide.forEach(m => {
+        m.transparent = true
+        m.opacity = opacity
+        m.side = THREE.FrontSide;
+    });
+	for(let x = 0; x < segments; x++){
+      for(let y = 0; y < 1; y++){
+          i = x * 1 + y;
+          j = i * 2;
+          sideGeometry.faces[j].materialIndex = sideGeometry.faces[j + 1].materialIndex = ((x + y + z + w) % 2) ^ (segments % 2);
+      }
+    }
+	let sideMesh1 = new THREE.Mesh(sideGeometry, new THREE.MultiMaterial(materialsSide));
+	let sideMesh2 = new THREE.Mesh(sideGeometry, new THREE.MultiMaterial(materialsSide));
+	let sideMesh3 = new THREE.Mesh(sideGeometry, new THREE.MultiMaterial(materialsSide));
+	let sideMesh4 = new THREE.Mesh(sideGeometry, new THREE.MultiMaterial(materialsSide));
+	rotateObject(sideMesh1, 0, 90, 0) //front
+	rotateObject(sideMesh2, 90, 0, 90) //left
+	rotateObject(sideMesh3, 180, -90, 0) //back
+	rotateObject(sideMesh4, -90, 0, -90) //right
+	sideMesh1.position.set(boardSize/2, 0, -BOARD_HEIGHT/2)
+	sideMesh2.position.set(0, -boardSize/2, -BOARD_HEIGHT/2)
+	sideMesh3.position.set(-boardSize/2, 0, -BOARD_HEIGHT/2)
+	sideMesh4.position.set(0, boardSize/2, -BOARD_HEIGHT/2)
+	
+	let boxContainer = new THREE.Group();
+	boxContainer.add(topMesh);
+	boxContainer.add(bottomMesh);
+	boxContainer.add(sideMesh1);
+	boxContainer.add(sideMesh2);
+	boxContainer.add(sideMesh3);
+	boxContainer.add(sideMesh4);
+	return boxContainer;
+	
+	
 }
 
 function removeEntity(objectName, scene=scene) {
