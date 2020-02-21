@@ -8,7 +8,7 @@
 */
 
 
-function GameBoard(n=5){
+function GameBoard(n=4){
 
     this.n = n;
     this.position = new THREE.Vector3(0, 0, 0);
