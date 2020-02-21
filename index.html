@@ -3,6 +3,8 @@
 	<head>
         
 		<title>4D Chess</title>
+		<!--	Disable Zoom on mobile	-->
+		<meta name="viewport" content="width=device-width, user-scalable=no">
         
 <!--        <script src="/socket.io/socket.io.js"></script>-->
         <script src="js/three.js"></script>
@@ -55,6 +57,7 @@
 			let moveManager;
             let pointer;
             let animationQueue = []
+			let debugSphere;
 
             function init(){
                 initTHREE();
@@ -63,7 +66,8 @@
                 
                 // begin the simulation loop
                 requestAnimationFrame(frame);
-
+				
+				mayn();
             }
 
             //
@@ -76,12 +80,12 @@
                 scene = new THREE.Scene(); // Create new scene
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 9000); 
 //                camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 9000); 
-                camera.position.set(510, 410, -525)
+//                camera.position.set(510, 410, -525)
                 renderer = new THREE.WebGLRenderer({antialias: true});
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 document.body.appendChild(renderer.domElement);
 
-                renderer.setClearColor(0xffffff);
+                renderer.setClearColor(0xf7f7f7);
                 // Code from three.js ambient light example:
                 // https://threejs.org/docs/index.html#api/lights/AmbientLight
                 let ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
@@ -131,6 +135,7 @@
                 
                 gameBoard = new GameBoard();
 				moveManager = new MoveManager(gameBoard, 0, false);
+				camera.position.set(600, 510, gameBoard.graphics.getCenter().z)
                 
 				// Debug Sphere
 //				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
@@ -138,6 +143,8 @@
 //				var sphere = new THREE.Mesh( geometry, material );
 //				sphere.position.set(getCenterPoint(gameBoard.graphics.mesh));
 //				scene.add( sphere );
+				
+				
             }
             
             function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
@@ -164,7 +171,21 @@
                 controls.minDistance = 100
                 controls.maxDistance = 2250
                 
-                controls.target.set(0 , gameBoard.graphics.globalHeight / 2, -gameBoard.graphics.globalLength / 2)
+				const target = gameBoard.graphics.getCenter();
+                controls.target.set(target.x, target.y, target.z);
+				
+				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+				var material = new THREE.MeshBasicMaterial( {color: 0xff0000, transparent:true, opacity:0.0} );
+				debugSphere = new THREE.Mesh( geometry, material );
+				debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
+				scene.add( debugSphere );
+				
+				window.addEventListener( 'resize', onWindowResize, false );
+				function onWindowResize(){
+					camera.aspect = window.innerWidth / window.innerHeight;
+					camera.updateProjectionMatrix();
+					renderer.setSize( window.innerWidth, window.innerHeight );
+				}
 
             }
 
@@ -209,6 +230,8 @@
             function keyInputs(){
 
                 controls.update();
+//				debugSphere.position.set(0, controls.target.y, controls.target.z);
+				debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
                 pointer.keyInputs(scene, camera, gameBoard)
 
             }
@@ -247,10 +270,50 @@
 
             }
             
+			function mayn(){
+//				var text2 = document.createElement('div');
+//				text2.style.position = 'absolute';
+//				//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+//				text2.style.width = 100;
+//				text2.style.height = 100;
+//				text2.style.backgroundColor = "blue";
+//				text2.innerHTML = "hi there!";
+//				text2.style.top = 200 + 'px';
+//				text2.style.left = 200 + 'px';
+//				document.body.appendChild(text2);
+			}
+			
         </script>
+		
+		<style>
+			/* Prevent Scrolling */
+			html, body { 
+			  overflow-x: hidden;
+			  overflow-y: hidden;
+			}
+			body {
+			  position: relative;
+			}
+/*
+			#button {
+				position: fixed;
+				bottom: 16px;
+				right: 16px;
+				padding: 10px;
+				border-radius: 50%;
+				margin-bottom: 0px;
+				background-color: #FFF;
+				opacity: .9;
+				z-index: 999;
+				box-shadow: 0 0 4px rgba(0,0,0,.15);
+			}
+*/
+		</style>
         
 	</head>
     <body>
+<!--		<a id="button" target="_blank"  style="position: absolute;"><img src="./icons/arrow_forward_ios-24px.svg"></a>-->
+<!--		<a id="button" target="_blank"  style="position: absolute;"><img src="./icons/arrow_back_ios-24px.svg"></a>-->
     </body>
     
 </html>      

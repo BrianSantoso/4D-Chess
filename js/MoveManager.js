@@ -32,7 +32,7 @@ function MoveManager(gameBoard, clientTeam, sandbox=false, clockTime=300){
 		this.players[this.turn].clockTime -= step;
 	}
 	
-
+	
 }
 
 function DMoveList(gameBoard, curr){

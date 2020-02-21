@@ -8,7 +8,7 @@
 */
 
 
-function GameBoard(n=4){
+function GameBoard(n=5){
 
     this.n = n;
     this.position = new THREE.Vector3(0, 0, 0);
@@ -25,8 +25,9 @@ function BoardGraphics(gameBoard){
 	this.gameBoard = gameBoard;
 	this.n = gameBoard.n;
 	this.squareSize = 50
-    this.verticalIncrement = 100
-    this.horizontalGap = this.squareSize * 1.75
+	this.boardSize = this.squareSize * this.n;
+    this.verticalIncrement = 100 * 1.75
+    this.horizontalGap = this.squareSize * 1.6
     this.horizontalIncrement = this.n * this.squareSize + this.horizontalGap
     this.globalLength = this.horizontalIncrement * (this.n - 1)
     this.globalHeight = this.verticalIncrement * this.n
@@ -55,9 +56,18 @@ function BoardGraphics(gameBoard){
 			this.boardContainer.add(checker)
 		}
 	}
+	
 }
 
 BoardGraphics.prototype = {
+	
+	getCenter: function(){
+		const numHalfBoards = (this.n - 1) / 2;
+		const localZ = -(this.boardSize + this.horizontalGap) * numHalfBoards;
+		const localY = this.verticalIncrement * numHalfBoards;
+		const localCenter = new THREE.Vector3(0, localY, localZ);
+		return localCenter.add(this.mesh.position);
+	},
 	
 	boardCoordinates: function(x, y, z, w){
         
@@ -204,7 +214,7 @@ GameBoard.prototype = {
     
 	// GameBoard.move should only be called from MoveManager. All move data received from server should pass through MoveManager.
     move: function(x0, y0, z0, w0, x1, y1, z1, w1){
-		
+		this.graphics.hidePossibleMoves(); // TODO: replace with pointer deselection
 		const metaData = {}
 		
 		const targetPiece = this.pieces[x1][y1][z1][w1];
@@ -235,6 +245,7 @@ GameBoard.prototype = {
     },
 	
 	undo: function(move){
+		this.graphics.hidePossibleMoves(); // TODO: replace with pointer deselection
 		const pieceInOriginalLoc = this.pieces[move.x0][move.y0][move.z0][move.w0];
 		if(pieceInOriginalLoc.type){
 			console.error('Unknown error. A piece is already located in original location')
@@ -565,4 +576,13 @@ BoardGraphics.checkerboard3d = function(segments=8, boardSize=100, z=0, w=0, opa
 function removeEntity(objectName, scene=scene) {
     var selectedObject = scene.getObjectByName(objectName.name);
     scene.remove(selectedObject);
+}
+
+function ds(vec){
+	// Debug Sphere
+	var geometry = new THREE.SphereGeometry(5, 32, 32 );
+	var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+	var sphere = new THREE.Mesh( geometry, material );
+	sphere.position.set(vec.x, vec.y, vec.z);
+	scene.add(sphere);
 }

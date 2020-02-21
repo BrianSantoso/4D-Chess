@@ -152,6 +152,17 @@ function Pointer(scene, camera, gameBoard, moveManager){
         this.onMove(e);
         
     }.bind(this), false);
+	
+	document.addEventListener('keydown', function(e){
+		const keyCode = e.keyCode;
+		console.log(keyCode)
+		if(keyCode === Pointer.UNDO){
+			this.moveManager.moveHistory.undo();
+		}
+		if(keyCode === Pointer.REDO){
+			this.moveManager.moveHistory.redo();
+		}
+	}.bind(this), false);
     
 //    document.addEventListener('mouseup', function(e){
 //        
@@ -160,6 +171,9 @@ function Pointer(scene, camera, gameBoard, moveManager){
 //    }.bind(this), false);
     
 }
+
+Pointer.UNDO = 65;
+Pointer.REDO = 68;
 
 function Selector(scene, camera, gameBoard, designatedRayCastContainer){
     this.scene = scene
