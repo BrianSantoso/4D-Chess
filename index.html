@@ -16,14 +16,68 @@
         <script src="js/Piece.js"></script>
         <script src="js/Pointer.js"></script>
         <script src="js/Animation.js"></script>
+		<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  		<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+		<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
         
         <style>
-            body {
-                margin: 0px;
-            }
+			/* Prevent Scrolling */
+			html, body { 
+				margin: 0px;
+			  	overflow-x: hidden;
+			  	overflow-y: hidden;
+			}
+			body {
+			  	position: relative;
+			}
+			
+			.overlay {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+				
+				/* No Highlight */
+				-webkit-touch-callout: none; /* iOS Safari */
+				-webkit-user-select: none; /* Safari */
+				 -khtml-user-select: none; /* Konqueror HTML */
+				   -moz-user-select: none; /* Old versions of Firefox */
+					-ms-user-select: none; /* Internet Explorer/Edge */
+						user-select: none; /* Non-prefixed version, currently
+											  supported by Chrome, Opera and Firefox */
+			}
+			
+			.button {
+				position: fixed;
+				padding: 1%; /* Circle Radius */
+				border-radius: 50%; /* Make circle */
+				margin-bottom: 0px;
+				background-color: #FFFFFF;
+				opacity: .6;
+				z-index: 999;
+				box-shadow: 0 0 4px rgba(0,0,0,.15);
+				pointer-events: auto;
+			}
+			
+			.button:hover {
+				opacity: 0.9;
+			}
+			
+			#redoButton {
+				bottom: 16px;
+				right: 42%;
+			}
+			
+			#undoButton {
+				
+				bottom: 16px;
+				right: 58%;
+
+			}
+
         </style>
         
-        <script>
+        <script type="text/babel">
 //            try {
 //				const socket = io()
 //			socket.emit('HW message', 'hello from html!')
@@ -83,7 +137,9 @@
 //                camera.position.set(510, 410, -525)
                 renderer = new THREE.WebGLRenderer({antialias: true});
                 renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.domElement.id = "myCanvas"
                 document.body.appendChild(renderer.domElement);
+//                document.getElementById("gui").appendChild(renderer.domElement);
 
                 renderer.setClearColor(0xf7f7f7);
                 // Code from three.js ambient light example:
@@ -144,6 +200,10 @@
 //				sphere.position.set(getCenterPoint(gameBoard.graphics.mesh));
 //				scene.add( sphere );
 				
+//				ReactDOM.render(
+//				  <h1>Hello, world!</h1>,
+//				  document.getElementById('gui')
+//				);
 				
             }
             
@@ -284,36 +344,13 @@
 			}
 			
         </script>
-		
-		<style>
-			/* Prevent Scrolling */
-			html, body { 
-			  overflow-x: hidden;
-			  overflow-y: hidden;
-			}
-			body {
-			  position: relative;
-			}
-/*
-			#button {
-				position: fixed;
-				bottom: 16px;
-				right: 16px;
-				padding: 10px;
-				border-radius: 50%;
-				margin-bottom: 0px;
-				background-color: #FFF;
-				opacity: .9;
-				z-index: 999;
-				box-shadow: 0 0 4px rgba(0,0,0,.15);
-			}
-*/
-		</style>
         
 	</head>
     <body>
-<!--		<a id="button" target="_blank"  style="position: absolute;"><img src="./icons/arrow_forward_ios-24px.svg"></a>-->
-<!--		<a id="button" target="_blank"  style="position: absolute;"><img src="./icons/arrow_back_ios-24px.svg"></a>-->
-    </body>
+		<div id="gui" class="overlay">
+			<a class="button" id="redoButton" onclick="moveManager.moveHistory.redo();"><img src="./icons/arrow_forward_ios-24px.svg"></a>
+			<a class="button" id="undoButton" onclick="moveManager.moveHistory.undo();"><img src="./icons/arrow_back_ios-24px.svg"></a>
+		</div>
+	</body>
     
 </html>      

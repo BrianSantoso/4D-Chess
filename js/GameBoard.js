@@ -135,6 +135,7 @@ BoardGraphics.prototype = {
     },
 	
 	moveMesh: function(piece, x1, y1, z1, w1){
+		console.log(piece.type)
 		const currentMeshCoords = piece.mesh.position
         const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
         
@@ -152,29 +153,34 @@ BoardGraphics.prototype = {
 				// it will also remove its game object, which is logic that should 
 				// be separate from graphics
 				this.graphics.removeMesh(piece)
-				const queenMesh = this.graphics.createMesh('queen', piece.team, x1, y1, z1, w1)
-				queen.setMesh(queenMesh);
+				
+				// LEGACY CODE: Again, the following 2 lines were causing bugs when spamming redo after pawn promotion because the queen's .mesh property was not being set until the animation was complete. The fix was to create the mesh and set the queen's .mesh property immediately in the promotion logic, and only make it appear (add it to piecesContainer) when the animation is finished.
+//				const queenMesh = this.graphics.createMesh('queen', piece.team, x1, y1, z1, w1)
+//				queen.setMesh(queenMesh); // TODO: where does queen come from?
+				this.graphics.piecesContainer.add(queen.mesh);
             }
         }.bind(this.gameBoard)
 	},
 	
-	createMesh: function(typeString, team, x, y, z, w){ 
+	createMesh: function(typeString, team, x, y, z, w, addToContainer=true){ 
 		
 		// Create mesh (without game object), add it to the scene, and return the mesh
 		const worldPos = this.boardCoordinates(x, y, z, w)
 		const material = team === 0 ? Models.materials.white : Models.materials.black
 		const mesh = Models.createMesh(typeString, material, worldPos.x, worldPos.y, worldPos.z)
 		if(team === 0) rotateObject(mesh, 0, 180, 0)
-		this.piecesContainer.add(mesh)
+		if(addToContainer){
+			this.piecesContainer.add(mesh)
+		}
 		
 		return mesh
 		
 	},
 	
-	setMesh: function(piece, x, y, z, w){
+	setMesh: function(piece, x, y, z, w, addToContainer=true){
 //		const worldPos = this.boardCoordinates(x, y, z, w)
 //		const mesh = this.createMesh(piece.type, piece.team, worldPos.x, worldPos.y, worldPos.z, worldPos.w);
-		const mesh = this.createMesh(piece.type, piece.team, x, y, z, w);
+		const mesh = this.createMesh(piece.type, piece.team, x, y, z, w, addToContainer);
         piece.setMesh(mesh);
 	},
 	
@@ -222,7 +228,7 @@ GameBoard.prototype = {
 			Object.assign(metaData, {captured: true, capturedPiece: targetPiece});
 		}
         const piece = this.pieces[x0][y0][z0][w0];
-        
+		
 		this.graphics.moveMesh(piece, x1, y1, z1, w1);
         
 		this.pieces[x0][y0][z0][w0] = new Piece(); // Remove game object from board
@@ -236,11 +242,15 @@ GameBoard.prototype = {
 			// Notice that we do not use GameObject.removePiece() method because
 			// it will also remove its mesh, which we only want once the animation
 			// finishes
-			queen = new Queen(piece.team);
-			this.pieces[x1][y1][z1][w1] = queen;
+			
+			// The following 2 lines were causing bugs when spamming redo after a pawn promotion. Error was that the queen's mesh is undefined. The queen's .mesh property was not being set until the animation was complete. The fix was to create the mesh and set the queen's .mesh property immediately in the promotion logic, and only make it appear (add it to piecesContainer) when the animation is finished.
+//			queen = new Queen(piece.team);
+//			this.pieces[x1][y1][z1][w1] = queen;
+			queen = this.spawnPiece(Queen, piece.team, x1, y1, z1, w1, false);
 			
 			Object.assign(metaData, {promotion: true, newPiece: queen, oldPiece: piece});
 		}
+//		this.graphics.moveMesh(piece, x1, y1, z1, w1);
         return metaData;
     },
 	
@@ -309,10 +319,11 @@ GameBoard.prototype = {
 		return z === promotionLoc && w === promotionLoc
     },
     
-    spawnPiece: function(pieceConstructor, team, x, y, z, w){
-        const piece = new pieceConstructor(team)
+    spawnPiece: function(PieceConstructor, team, x, y, z, w, addToContainer=true){
+        const piece = new PieceConstructor(team)
         this.pieces[x][y][z][w] = piece
-		this.graphics.setMesh(piece, x, y, z, w);
+		this.graphics.setMesh(piece, x, y, z, w, addToContainer);
+		return piece;
     },
 	
 	removePiece: function(x, y, z, w){
