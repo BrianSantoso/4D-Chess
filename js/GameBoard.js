@@ -18,7 +18,6 @@ function GameBoard(n=4){
     
     let halfN = Math.floor((this.n - 1) / 2)
     this.test(halfN, halfN, halfN+2, halfN)
-    
 }
 
 function BoardGraphics(gameBoard){
@@ -102,7 +101,7 @@ BoardGraphics.prototype = {
         return new THREE.Vector4(x, y, z, w)
     },
 	
-	showPossibleMoves: function(locations, piece, materialScheme={}){
+	showPossibleMoves: function(locations, piece, materialScheme={}, canRayCast){
 		materialScheme = Object.assign({
 			0: {
 				moveMaterial: Models.materials.green,
@@ -117,11 +116,6 @@ BoardGraphics.prototype = {
         this.hidePossibleMoves();
         
         locations.forEach(pos => {
-            
-//            coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
-//			let material = pos.possibleCapture ? materialScheme[piece.team].attackMaterial : materialScheme[piece.team].moveMaterial;
-//			let shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z)
-//			this.possibleMovesContainer.add(shadowPiece)
 			
 			coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
 			let material;
@@ -129,10 +123,10 @@ BoardGraphics.prototype = {
 			if(pos.possibleCapture){
 				const attackedPiece = this.gameBoard.pieces[pos.x][pos.y][pos.z][pos.w]
 				material = materialScheme[piece.team].attackMaterial;
-				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1.05)
+				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1.05, canRayCast)
 			} else {
 				let material = materialScheme[piece.team].moveMaterial;
-				shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z)
+				shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)
 			}
 				
 			this.possibleMovesContainer.add(shadowPiece)
@@ -325,7 +319,7 @@ GameBoard.prototype = {
 		this.applyToPieces(onlyTeam)
 	},
     
-	setTeamAbility: function(team, canMove){
+	setSelectability: function(team, canMove){
 		// Enable/Disable piece rayCasting (block user interaction)
 		this.applyToTeam(function(piece){
 			

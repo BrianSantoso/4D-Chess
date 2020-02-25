@@ -2,7 +2,7 @@
 
 function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 	this.gameBoard = gameBoard;
-	this.clientTeam = 0;
+	this.clientTeam = 1;
 	this.turn = 0; // team number. White: 0, Black: 1
 	this.players = [new PlayerData(0, clockTime), new PlayerData(1, clockTime)];
 	this.moveHistory = new DMoveList(gameBoard);
@@ -36,14 +36,14 @@ function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 	this.setMode = function(mode){
 		this.mode = mode;
 		if (this.mode === MoveManager.SANDBOX) {
-			this.gameBoard.setTeamAbility(0, true);
-			this.gameBoard.setTeamAbility(1, true);
+			this.gameBoard.setSelectability(0, true);
+			this.gameBoard.setSelectability(1, true);
 		} else if (this.mode === MoveManager.LOCAL_MULTIPLAYER) {
-			this.gameBoard.setTeamAbility(0, this.canMove(0));
-			this.gameBoard.setTeamAbility(1, this.canMove(1));
+			this.gameBoard.setSelectability(0, this.canMove(0));
+			this.gameBoard.setSelectability(1, this.canMove(1));
 		} else if (this.mode === MoveManager.ONLINE_MULTIPLAYER) {
-			this.gameBoard.setTeamAbility(0, this.canMove(0));
-			this.gameBoard.setTeamAbility(1, this.canMove(1));
+			this.gameBoard.setSelectability(this.clientTeam, this.canMove(this.clientTeam));
+			this.gameBoard.setSelectability(1 - this.clientTeam, false);
 		}
 	}
 	

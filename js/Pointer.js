@@ -97,7 +97,7 @@ function Pointer(scene, camera, gameBoard, moveManager){
         
     }
     
-    this.showPossibleMoves = function(mesh, materialScheme){
+    this.showPossibleMoves = function(mesh, materialScheme, canRayCast){
         
         const gameBoard = this.gameBoard
         
@@ -105,7 +105,7 @@ function Pointer(scene, camera, gameBoard, moveManager){
         let piece = gameBoard.pieces[boardCoords.x][boardCoords.y][boardCoords.z][boardCoords.w]
 		
         if(piece){
-            gameBoard.graphics.showPossibleMoves(this.possibleMoves, piece, materialScheme)
+            gameBoard.graphics.showPossibleMoves(this.possibleMoves, piece, materialScheme, canRayCast)
         } else {
             console.error('Piece not found')
         }
@@ -331,7 +331,7 @@ PieceSelector.prototype.run = function(rayCaster, pos, highlight){
 						opacity: 0.5
 					}) 
 				}
-			});
+			}, false);
 		}
 		if(closest.selectable){
 			this.setINTERSECTED(closest, highlight)
