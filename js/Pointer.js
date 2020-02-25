@@ -20,8 +20,8 @@ function Pointer(scene, camera, gameBoard, moveManager){
     this.pos = new THREE.Vector2()
     this.possibleMoves;
     
-    this.pieceSelector = new Selector(scene, camera, gameBoard, gameBoard.graphics.piecesContainer.children)
-    this.moveSelector = new Selector(scene, camera, gameBoard, gameBoard.graphics.possibleMovesContainer.children)
+    this.pieceSelector = new PieceSelector(this, scene, camera, gameBoard, gameBoard.graphics.piecesContainer.children)
+    this.moveSelector = new MoveSelector(this, scene, camera, gameBoard, gameBoard.graphics.possibleMovesContainer.children)
     this.keyInputs = function(scene, camera, gameBoard){
         
         this.pieceSelector.run(this.rayCaster, this.pos, highlight=!this.pieceSelector.SELECTED)
@@ -30,7 +30,6 @@ function Pointer(scene, camera, gameBoard, moveManager){
     }
     
     this.onClick = function(){
-        
         
         // check for clicking on possible move
         this.moveSelector.run(this.rayCaster, this.pos)
@@ -98,15 +97,15 @@ function Pointer(scene, camera, gameBoard, moveManager){
         
     }
     
-    this.showPossibleMoves = function(mesh){
+    this.showPossibleMoves = function(mesh, materialScheme){
         
         const gameBoard = this.gameBoard
         
         let boardCoords = gameBoard.graphics.worldCoordinates(mesh.position)
         let piece = gameBoard.pieces[boardCoords.x][boardCoords.y][boardCoords.z][boardCoords.w]
-        
+		
         if(piece){
-            gameBoard.graphics.showPossibleMoves(this.possibleMoves, piece.type)
+            gameBoard.graphics.showPossibleMoves(this.possibleMoves, piece, materialScheme)
         } else {
             console.error('Piece not found')
         }
@@ -175,7 +174,8 @@ function Pointer(scene, camera, gameBoard, moveManager){
 Pointer.UNDO = 65;
 Pointer.REDO = 68;
 
-function Selector(scene, camera, gameBoard, designatedRayCastContainer){
+function Selector(pointer, scene, camera, gameBoard, designatedRayCastContainer){
+	this.pointer = pointer
     this.scene = scene
     this.camera = camera
     this.gameBoard = gameBoard
@@ -191,21 +191,21 @@ Selector.SELECT_COLOR = Models.materials.blue.color
 Selector.highlight = function(mesh, color){
     // mesh is this.INTERSECTED or this.SELECTED
 //        if(mesh)
-//            mesh.material.color.setHex(mesh.material.currentHex);
+//            mesh.material.color.setHex(mesh.material.originalHex);
 
     // store color of closest object (for later restoration)
-//        mesh.currentHex = this.INTERSECTED.material.color.getHex();
+//        mesh.originalHex = this.INTERSECTED.material.color.getHex();
 
 
-    if(!('currentHex' in mesh.material)){
+    if(!('originalHex' in mesh.material)){
         const color = new THREE.Color(0, 0, 0)
-        Object.assign(mesh.material, {currentHex: color})
-        mesh.material.currentHex.set(mesh.material.color.getHex())
+        Object.assign(mesh.material, {originalHex: color})
+        mesh.material.originalHex.set(mesh.material.color.getHex())
     }
 
 //    if(saveCurrentColor){
 //        // store color of closest object (for later restoration)
-//        mesh.material.currentHex.set(mesh.material.color.getHex())
+//        mesh.material.originalHex.set(mesh.material.color.getHex())
 //    }
 
     // set a new color for closest object
@@ -214,9 +214,9 @@ Selector.highlight = function(mesh, color){
 }
     
 Selector.unhighlight = function(mesh){
-//        console.log(mesh.material.currentHex.getHex())
-    if(mesh && mesh.material.currentHex)
-        mesh.material.color.setHex(mesh.material.currentHex.getHex());
+//        console.log(mesh.material.originalHex.getHex())
+    if(mesh && mesh.material.originalHex)
+        mesh.material.color.setHex(mesh.material.originalHex.getHex());
     // remove previous intersection object reference
     //     by setting current intersection object to "nothing"
 
@@ -263,7 +263,7 @@ Selector.prototype = {
     },
     select: function(){
 //        if(this.SELECTED != this.INTERSECTED)
-////            Selector.highlight(this.SELECTED, this.SELECTED.material.currentHex.getHex())
+////            Selector.highlight(this.SELECTED, this.SELECTED.material.originalHex.getHex())
 //            Selector.unhighlight(this.SELECTED) // reset color of currently selected piece (if it exists, there's a safeguard)
 //            
         if(this.SELECTED != this.INTERSECTED){
@@ -279,6 +279,93 @@ Selector.prototype = {
     
 }
 
+function PieceSelector(pointer, scene, camera, gameBoard, designatedRayCastContainer){
+    Selector.call(this, pointer, scene, camera, gameBoard, designatedRayCastContainer);
+}
+
+PieceSelector.prototype = Object.create(Selector.prototype)
+
+PieceSelector.prototype.select = function() {
+	
+	// <NewCode>
+	if(this.INTERSECTED && !this.INTERSECTED.selectable){
+		return;
+	}
+	// </NewCode>
+	
+	if(this.SELECTED != this.INTERSECTED){
+		Selector.unhighlight(this.SELECTED)
+	}
+
+	this.setSELECTED(this.INTERSECTED)
+
+	if(this.SELECTED)
+		Selector.highlight(this.SELECTED, Selector.SELECT_COLOR)
+}
+
+PieceSelector.prototype.run = function(rayCaster, pos, highlight){
+	const intersects = this.rayCast(rayCaster, pos)
+	if(intersects.length > 0){
+		const closest = intersects[0].object
+		// <NewCode>
+		if(!this.SELECTED && closest.selectable){
+			this.pointer.possibleMoves = this.pointer.getPossibleMoves(closest);
+			this.pointer.showPossibleMoves(closest, {
+				0: {
+					attackMaterial: Object.assign(Object.assign({}, Models.materials.white), {
+						transparent: true,
+						opacity: 0.5
+					}),
+					moveMaterial: Object.assign(Object.assign({}, Models.materials.white), {
+						transparent: true,
+						opacity: 0.5
+					}) 
+				},
+				1: {
+					attackMaterial: Object.assign(Object.assign({}, Models.materials.black), {
+						transparent: true,
+						opacity: 0.5
+					}),
+					moveMaterial: Object.assign(Object.assign({}, Models.materials.black), {
+						transparent: true,
+						opacity: 0.5
+					}) 
+				}
+			});
+		}
+		if(closest.selectable){
+			this.setINTERSECTED(closest, highlight)
+		}
+		// </NewCode>
+	} else {
+		this.setINTERSECTED(null, highlight)
+		if(!this.SELECTED){
+			this.gameBoard.graphics.hidePossibleMoves();
+		}
+		
+	}
+
+}
+
+
+
+
+function MoveSelector(pointer, scene, camera, gameBoard, designatedRayCastContainer){
+	Selector.call(this, pointer, scene, camera, gameBoard, designatedRayCastContainer)
+}
+MoveSelector.prototype = Object.create(Selector.prototype)
+
+//MoveSelector.prototype.select = function() {
+//	
+//	if(this.SELECTED != this.INTERSECTED){
+//		Selector.unhighlight(this.SELECTED)
+//	}
+//
+//	this.setSELECTED(this.INTERSECTED)
+//
+//	if(this.SELECTED)
+//		Selector.highlight(this.SELECTED, Selector.SELECT_COLOR)
+//}
 
 
 function initPointer(){

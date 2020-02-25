@@ -1,3 +1,4 @@
+'use strict';
 function Piece(team=-1){
     
     this.team = team
@@ -17,8 +18,8 @@ Piece.prototype = {
         let positions = [];
         let possibleMovements = this.movement(board, x, y, z, w).map(move => Object.assign(move, {possibleCapture: false}));
         let possibleAttacks = this.attack(board, x, y, z, w).map(attack => Object.assign(attack, {possibleCapture: true}));
-        let possibleMovementsAndAttacks = Piece.concatWithoutDuplicates(possibleMovements, possibleAttacks); // Possible moves
-        positions = Piece.concatWithoutDuplicates(positions, possibleMovementsAndAttacks);
+        let possibleMovementsAndAttacks = Piece.concatUnique(possibleMovements, possibleAttacks); // Possible moves
+        positions = Piece.concatUnique(positions, possibleMovementsAndAttacks);
         
         positions = Piece.removeIllegalMoves(positions, board, x, y, z, w);
         
@@ -26,12 +27,11 @@ Piece.prototype = {
     },
     update: function(board, x0, y0, z0, w0, x1, y1, z1, w1){},
     isPinned: function(board, x, y, z, w){
-        
+        // Returns array of positions of pieces that are pinning the king
         // temporarily modify the board so that the current piece is missing
         board[x][y][z][w] = new Piece(); //empty piece
         
-        const inCheck = Piece.inCheck(board, this.team);
-        console.log('inCheck?', inCheck);
+		const inCheck = Piece.inCheck(board, this.team);
         board[x][y][z][w] = this;
         return inCheck;
         
@@ -59,14 +59,14 @@ Rook.prototype.movement = function(board, x, y, z, w, getPath=true){
     
     let positions = []
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, -1), getPath))
     
     return positions
 }
@@ -82,33 +82,33 @@ Bishop.prototype.movement = function(board, x, y, z, w, getPath=true){
     
     let positions = []
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), getPath))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 1, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 1), getPath))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -1, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -1), getPath))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -1, 0, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -1, 0), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -1), getPath))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -1), getPath))
     
     return positions
 }
@@ -123,51 +123,10 @@ Queen.prototype = Object.create(Piece.prototype)
 Queen.prototype.movement = function(board, x, y, z, w, getPath=true){
     
     let positions = []
-    
-    //
     // Rook Movements
-    //
-    
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, -1), getPath))
-    
-    //
+	positions = Piece.concatUnique(positions, Rook.prototype.movement(board, x, y, z, w, getPath))
     // Bishop Movements
-    //
-    
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), getPath))
-    
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 1), getPath))
-    
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -1), getPath))
-    
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -1, 0, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -1, 0), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -1), getPath))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -1), getPath))
+	positions = Piece.concatUnique(positions, Bishop.prototype.movement(board, x, y, z, w, getPath))
     
     return positions
 }
@@ -184,57 +143,57 @@ Knight.prototype.movement = function(board, x, y, z, w, getPath=true){
     let positions = []
     
     // Max iterations is 1
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 2, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 2, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 2, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 2, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 2), getPath, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -2, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -2, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -2, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -2, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -2), getPath, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, -1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 2, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 2, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, -1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(2, 0, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 2, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 2, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 2, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 2), getPath, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, -1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -2, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -2, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -2, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -2), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, -1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-2, 0, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -2, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -2, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -2, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -2, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -2), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -2), getPath, 1))
     
     
     
@@ -258,46 +217,46 @@ King.prototype.movement = function(board, x, y, z, w, getPath=true){
     // Rook Movements
     //
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, -1), getPath, 1))
     
     //
     // Bishop Movements
     //
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, 1), getPath, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, 1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, 1), getPath, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, -1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 1, -1), getPath, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -1, 0, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -1, 0), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -1), getPath, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, -1, 0, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, -1, 0), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, -1), getPath, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, -1, -1), getPath, 1))
     
     
     return positions
@@ -330,17 +289,17 @@ Pawn.prototype.attack = function(board, x, y, z, w){
     let positions = []
     let d = this.team === 0 ? 1 : -1
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, d, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, d, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, d, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, d, 0), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, d), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, d, 0), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, d, 0), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, d, 0), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, d, 0), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, d), false, 1))
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, d), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, d), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, d), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, d), false, 1))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, d), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(1, 0, 0, d), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(-1, 0, 0, d), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 1, 0, d), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, -1, 0, d), false, 1))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, d), false, 1))
     
     
     return positions
@@ -354,8 +313,8 @@ Pawn.prototype.movement = function(board, x, y, z, w, getPath=true){
     let maxIterations = this.hasMoved ? 1 : 2
     let d = this.team === 0 ? 1 : -1
     
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, 0), getPath, maxIterations))
-    positions = Piece.concatWithoutDuplicates(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, d), getPath, maxIterations))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, d, 0), getPath, maxIterations))
+    positions = Piece.concatUnique(positions, Piece.rayCast(board, new THREE.Vector4(x, y, z, w), new THREE.Vector4(0, 0, 0, d), getPath, maxIterations))
     
     return positions
     
@@ -392,7 +351,7 @@ Piece.rayCast = function(board, position, direction, getPath=true, maxIterations
     const length_w = board[0][0][0].length
     
     let positions = []
-    iteration = 0
+    let iteration = 0
     
     while(iteration < maxIterations){
         iteration++
@@ -436,8 +395,8 @@ Piece.arrayContainsVector = function(arr, vector){
     return false
 }
 
-Piece.concatWithoutDuplicates = function(a, b){
-    
+Piece.concatUnique = function(a, b){
+	// Concatenates two arays of Vectors, without duplicates.
     let new_a = a.slice()
     b.forEach(vector => {
         
@@ -458,27 +417,28 @@ Piece.vec4Equals = function(a, b){
 }
 
 Piece.inCheck = function(board, team){
-    
+    // Returns array of positions of pieces that are attacking the king
     const oppositeTeam = 1 - team
     const piecePositions = Piece.getPieces(board, oppositeTeam)
     const kingPosition = Piece.getKing(board, team)
-    
+    const attackers = []
+	
     for(let i = 0; i < piecePositions.length; i++){
         
         const pos = piecePositions[i]
-        const piece = board[pos.x][pos.y][pos.z][pos.w]
-        const attacked = piece.attack(board, pos.x, pos.y, pos.z, pos.w)
+        const attacker = board[pos.x][pos.y][pos.z][pos.w]
+        const attacked = attacker.attack(board, pos.x, pos.y, pos.z, pos.w)
         
         for(let j = 0; j < attacked.length; j++){
             const attackedPosition = attacked[j]
             if(Piece.vec4Equals(kingPosition, attackedPosition))
-                return true
+                attackers.push(pos)
         }
         
         
     }
     
-    return false
+    return attackers
     
 }
 
@@ -573,16 +533,16 @@ Piece.removeIllegalMoves = function(positions, board, x, y, z, w){
     
     positions.forEach(position => {
         
-        pos_x = position.x
-        pos_y = position.y
-        pos_z = position.z
-        pos_w = position.w
+        let pos_x = position.x
+        let pos_y = position.y
+        let pos_z = position.z
+        let pos_w = position.w
         
         const savedPiece = board[pos_x][pos_y][pos_z][pos_w]
         
         board[pos_x][pos_y][pos_z][pos_w] = piece
         
-        if(!Piece.inCheck(board, team)){
+        if(!Piece.inCheck(board, team).length){
             legalPositions.push(position)
         }
         

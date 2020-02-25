@@ -133,7 +133,7 @@ const Models = {
         }
     ],
     
-    createMesh: function(piece, material, x=0, y=0, z=0){
+    createMesh: function(piece, material, x=0, y=0, z=0, scale=1){
         
 //        const manager = new THREE.LoadingManager();
 //        const loader = new THREE.JSONLoader(manager);
@@ -159,6 +159,7 @@ const Models = {
         mesh.receiveShadow = true;
 
         mesh.scale.set(Models.SCALE_FACTOR, Models.SCALE_FACTOR, Models.SCALE_FACTOR)
+		mesh.scale.multiplyScalar(scale)
         mesh.position.set(x, y, z)
         mesh.canRayCast = true;
         

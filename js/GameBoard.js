@@ -59,6 +59,7 @@ function BoardGraphics(gameBoard){
 	
 }
 
+
 BoardGraphics.prototype = {
 	
 	getCenter: function(){
@@ -101,41 +102,63 @@ BoardGraphics.prototype = {
         return new THREE.Vector4(x, y, z, w)
     },
 	
-	showPossibleMoves: function(locations, pieceType, material=Models.materials.green){
-        
+	showPossibleMoves: function(locations, piece, materialScheme={}){
+		materialScheme = Object.assign({
+			0: {
+				moveMaterial: Models.materials.green,
+				attackMaterial: Models.materials.red
+			},
+			1: {
+				moveMaterial: Models.materials.green,
+				attackMaterial: Models.materials.red
+			},
+		}, materialScheme)
+		
         this.hidePossibleMoves();
         
         locations.forEach(pos => {
             
-            coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
+//            coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
+//			let material = pos.possibleCapture ? materialScheme[piece.team].attackMaterial : materialScheme[piece.team].moveMaterial;
+//			let shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z)
+//			this.possibleMovesContainer.add(shadowPiece)
+			
+			coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
+			let material;
+			let shadowPiece;
+			if(pos.possibleCapture){
+				const attackedPiece = this.gameBoard.pieces[pos.x][pos.y][pos.z][pos.w]
+				material = materialScheme[piece.team].attackMaterial;
+				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1.05)
+			} else {
+				let material = materialScheme[piece.team].moveMaterial;
+				shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z)
+			}
+				
+			this.possibleMovesContainer.add(shadowPiece)
             
-            if(pos.possibleCapture)
-                material = Models.materials.red
-            let shadowPiece = Models.createMesh(pieceType, material, coordinates.x, coordinates.y, coordinates.z)
-            this.possibleMovesContainer.add(shadowPiece)
-            
-        })
-        
+            			
+        });
         
     },
     
-    showPossibleMoves2: function(x, y, z, w){
+    showPossibleMoves2: function(x, y, z, w, materialScheme){
       
         const locations = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-        const pieceType = this.pieces[x][y][z][w].type
         
-        this.showPossibleMoves(locations, pieceType)
+        this.showPossibleMoves(locations, piece, materialScheme)
         
     },
     
     hidePossibleMoves: function(objectName='possibleMoves'){
         while(this.possibleMovesContainer.children.length){
-            this.possibleMovesContainer.remove(this.possibleMovesContainer.children[0]);
+			const mesh = this.possibleMovesContainer.children[0]
+			Selector.unhighlight(mesh)
+            this.possibleMovesContainer.remove(mesh);
         }
     },
 	
 	moveMesh: function(piece, x1, y1, z1, w1){
-		console.log(piece.type)
 		const currentMeshCoords = piece.mesh.position
         const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
         
@@ -153,11 +176,7 @@ BoardGraphics.prototype = {
 				// it will also remove its game object, which is logic that should 
 				// be separate from graphics
 				this.graphics.removeMesh(piece)
-				
-				// LEGACY CODE: Again, the following 2 lines were causing bugs when spamming redo after pawn promotion because the queen's .mesh property was not being set until the animation was complete. The fix was to create the mesh and set the queen's .mesh property immediately in the promotion logic, and only make it appear (add it to piecesContainer) when the animation is finished.
-//				const queenMesh = this.graphics.createMesh('queen', piece.team, x1, y1, z1, w1)
-//				queen.setMesh(queenMesh); // TODO: where does queen come from?
-				this.graphics.piecesContainer.add(queen.mesh);
+				this.graphics.piecesContainer.add(queen.mesh); // Only add mesh to scene when animation is finished
             }
         }.bind(this.gameBoard)
 	},
@@ -250,7 +269,7 @@ GameBoard.prototype = {
 			
 			Object.assign(metaData, {promotion: true, newPiece: queen, oldPiece: piece});
 		}
-//		this.graphics.moveMesh(piece, x1, y1, z1, w1);
+		
         return metaData;
     },
 	
@@ -309,7 +328,8 @@ GameBoard.prototype = {
 	setTeamAbility: function(team, canMove){
 		// Enable/Disable piece rayCasting (block user interaction)
 		this.applyToTeam(function(piece){
-			piece.mesh.canRayCast = canMove
+			
+			piece.mesh.selectable = canMove
 		}, team)
 	},
 	
