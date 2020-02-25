@@ -491,6 +491,7 @@ Piece.getKing = function(board, team){
     }
     
     console.error('No King Found', team)
+	return new THREE.Vector4(-1, -1, -1, -1)
     
 }
 
