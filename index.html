@@ -44,6 +44,17 @@
 				   -moz-user-select: none; /* Old versions of Firefox */
 					-ms-user-select: none; /* Internet Explorer/Edge */
 						user-select: none; /* Non-prefixed version, currently
+											  supported by Chrome, Opera and Firefox */				
+			}
+			
+			.button > img {
+				/* No Drag */
+				-webkit-user-drag: none; /* Safari */
+				 -khtml-user-drag: none; /* Konqueror HTML */
+				   -moz-user-drag: none; /* Old versions of Firefox */
+					 -o-user-drag: none;
+					-ms-user-drag: none; /* Internet Explorer/Edge */
+						user-drag: none; /* Non-prefixed version, currently
 											  supported by Chrome, Opera and Firefox */
 			}
 			
@@ -205,6 +216,11 @@
 //				  document.getElementById('gui')
 //				);
 				
+				ReactDOM.render(
+				  <App />,
+				  document.getElementById('gui')
+				);
+				
             }
             
             function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
@@ -344,13 +360,77 @@
 			}
 			
         </script>
+		
+		
         
 	</head>
     <body>
+		<div id="gui" class="overlay"></div>
+<!--
 		<div id="gui" class="overlay">
-			<a class="button" id="redoButton" onclick="moveManager.moveHistory.redo();"><img src="./icons/arrow_forward_ios-24px.svg"></a>
-			<a class="button" id="undoButton" onclick="moveManager.moveHistory.undo();"><img src="./icons/arrow_back_ios-24px.svg"></a>
+			<a class="button" id="redoButton" onclick="moveManager.redo();"><img src="./icons/arrow_forward_ios-24px.svg"></a>
+			<a class="button" id="undoButton" onclick="moveManager.undo();"><img src="./icons/arrow_back_ios-24px.svg"></a>
 		</div>
+-->
+		<script type="text/babel">
+
+				class App extends React.Component {
+					render() {
+						return (
+							<div className="overlay">
+								<RedoButton src="./icons/arrow_forward_ios-24px.svg" id="redoButton"/>
+								<UndoButton src="./icons/arrow_back_ios-24px.svg" id="undoButton"/>
+							</div>
+						);
+					}
+				}
+
+				class MoveHistoryButton extends React.Component {
+					construcor(props) {
+	//					super(props);
+						this.state = {};
+
+						this.handleClick = this.handleClick.bind(this);
+					}
+
+					handleClick() {
+
+					}
+
+					render() {
+						return (
+							<a onClick={this.handleClick} className="button" id={this.props.id}>
+								<img src={this.props.src}/>
+							</a>
+						);
+					}
+				}
+
+				class RedoButton extends MoveHistoryButton {
+					constructor(props) {
+						super(props);
+						this.handleClick = this.handleClick.bind(this);
+					}
+
+					handleClick() {
+						moveManager.redo();
+					}
+				}
+
+				class UndoButton extends MoveHistoryButton {
+					constructor(props) {
+						super(props);
+						this.handleClick = this.handleClick.bind(this);
+					}
+
+					handleClick() {
+						moveManager.undo();
+					}
+				}
+
+
+
+		</script>
 	</body>
     
 </html>      
