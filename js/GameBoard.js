@@ -123,7 +123,10 @@ BoardGraphics.prototype = {
 			if(pos.possibleCapture){
 				const attackedPiece = this.gameBoard.pieces[pos.x][pos.y][pos.z][pos.w]
 				material = materialScheme[piece.team].attackMaterial;
-				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1.05, canRayCast)
+				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)
+				if(attackedPiece.team === 0){
+					rotateObject(shadowPiece, 0, 180, 0)
+				}
 			} else {
 				let material = materialScheme[piece.team].moveMaterial;
 				shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)

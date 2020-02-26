@@ -2,7 +2,7 @@
 
 function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 	this.gameBoard = gameBoard;
-	this.clientTeam = 1;
+	this.clientTeam = 0;
 	this.turn = 0; // team number. White: 0, Black: 1
 	this.players = [new PlayerData(0, clockTime), new PlayerData(1, clockTime)];
 	this.moveHistory = new DMoveList(gameBoard);
@@ -23,6 +23,18 @@ function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 		this.moveHistory.add(x0, y0, z0, w0, x1, y1, z1, w1, capturedPiece, metaData);
 		this.turn = 1 - this.turn;
 		this.setMode(this.mode); // updates team abilities
+	}
+	
+	this.undo = function(){
+		this.moveHistory.undo();
+		this.turn = 1 - this.turn;
+		this.setMode(this.mode);
+	}
+	
+	this.redo = function(){
+		this.moveHistory.redo();
+		this.turn = 1 - this.turn;
+		this.setMode(this.mode);
 	}
 	
 	this.canMove = function(team){

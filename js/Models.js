@@ -158,9 +158,18 @@ const Models = {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
-        mesh.scale.set(Models.SCALE_FACTOR, Models.SCALE_FACTOR, Models.SCALE_FACTOR)
+        
+		mesh.scale.set(Models.SCALE_FACTOR, Models.SCALE_FACTOR, Models.SCALE_FACTOR)
+		const height = new THREE.Box3().setFromObject(mesh).max.y;
+		const dHeight = height * (scale - 1)
+		
 		mesh.scale.multiplyScalar(scale)
-        mesh.position.set(x, y, z)
+//		mesh.position.set(x, y - dHeight / 2, z)
+		mesh.position.set(x, y, z)
+		
+		
+		
+        
         mesh.canRayCast = canRayCast;
         
         return mesh
