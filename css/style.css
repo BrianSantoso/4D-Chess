@@ -1,0 +1,64 @@
+/* Prevent Scrolling */
+html, body { 
+	margin: 0px;
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+body {
+	position: relative;
+}
+
+.overlay {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+
+	/* No Highlight */
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	 -khtml-user-select: none; /* Konqueror HTML */
+	   -moz-user-select: none; /* Old versions of Firefox */
+		-ms-user-select: none; /* Internet Explorer/Edge */
+			user-select: none; /* Non-prefixed version, currently
+								  supported by Chrome, Opera and Firefox */				
+}
+
+.button > img {
+	/* No Drag */
+	-webkit-user-drag: none; /* Safari */
+	 -khtml-user-drag: none; /* Konqueror HTML */
+	   -moz-user-drag: none; /* Old versions of Firefox */
+		 -o-user-drag: none;
+		-ms-user-drag: none; /* Internet Explorer/Edge */
+			user-drag: none; /* Non-prefixed version, currently
+								  supported by Chrome, Opera and Firefox */
+}
+
+.button {
+	position: fixed;
+	padding: 1%; /* Circle Radius */
+	border-radius: 50%; /* Make circle */
+	margin-bottom: 0px;
+	background-color: #FFFFFF;
+	opacity: .6;
+	z-index: 999;
+	box-shadow: 0 0 4px rgba(0,0,0,.15);
+	pointer-events: auto;
+}
+
+.button:hover {
+	opacity: 0.9;
+}
+
+#redoButton {
+	bottom: 16px;
+	right: 42%;
+}
+
+#undoButton {
+
+	bottom: 16px;
+	right: 58%;
+
+}

@@ -16,77 +16,13 @@
         <script src="js/Piece.js"></script>
         <script src="js/Pointer.js"></script>
         <script src="js/Animation.js"></script>
+		<script src="js/ClientStateManager.js"></script>
+		<script src="js/ClientState.js"></script>
 		<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
   		<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
 		<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-        
-        <style>
-			/* Prevent Scrolling */
-			html, body { 
-				margin: 0px;
-			  	overflow-x: hidden;
-			  	overflow-y: hidden;
-			}
-			body {
-			  	position: relative;
-			}
-			
-			.overlay {
-				position: absolute;
-				width: 100%;
-				height: 100%;
-				pointer-events: none;
-				
-				/* No Highlight */
-				-webkit-touch-callout: none; /* iOS Safari */
-				-webkit-user-select: none; /* Safari */
-				 -khtml-user-select: none; /* Konqueror HTML */
-				   -moz-user-select: none; /* Old versions of Firefox */
-					-ms-user-select: none; /* Internet Explorer/Edge */
-						user-select: none; /* Non-prefixed version, currently
-											  supported by Chrome, Opera and Firefox */				
-			}
-			
-			.button > img {
-				/* No Drag */
-				-webkit-user-drag: none; /* Safari */
-				 -khtml-user-drag: none; /* Konqueror HTML */
-				   -moz-user-drag: none; /* Old versions of Firefox */
-					 -o-user-drag: none;
-					-ms-user-drag: none; /* Internet Explorer/Edge */
-						user-drag: none; /* Non-prefixed version, currently
-											  supported by Chrome, Opera and Firefox */
-			}
-			
-			.button {
-				position: fixed;
-				padding: 1%; /* Circle Radius */
-				border-radius: 50%; /* Make circle */
-				margin-bottom: 0px;
-				background-color: #FFFFFF;
-				opacity: .6;
-				z-index: 999;
-				box-shadow: 0 0 4px rgba(0,0,0,.15);
-				pointer-events: auto;
-			}
-			
-			.button:hover {
-				opacity: 0.9;
-			}
-			
-			#redoButton {
-				bottom: 16px;
-				right: 42%;
-			}
-			
-			#undoButton {
-				
-				bottom: 16px;
-				right: 58%;
-
-			}
-
-        </style>
+		
+		<link rel="stylesheet" type="text/css" href="css/style.css">
         
         <script type="text/babel">
 //            try {
@@ -94,23 +30,14 @@
 //			socket.emit('HW message', 'hello from html!')
 //			} catch(err) {
 //				console.warn('Socket.io lib not found')
-//			}
-            
-        
-            // when the window loads, execute the function named 'init', which initalizes the simulation
-            window.onload = function(){
-
+//			}        
+			window.onload = function(){
                 if(Detector.webgl){
-
-                    Models.loadModels(); // Will call init function when finished
-
+					main();
                 } else {
-
                     var warning = Detector.getWebGLErrorMessage();
                     document.getElementById('container').appendChild(warning);
-
                 }
-
             };
 
             // declare global variables
@@ -123,34 +50,56 @@
             let pointer;
             let animationQueue = []
 			let debugSphere;
+			let stateManager = new ClientStateManager(ClientState.GAME_STATE);
+
+			function main() {
+				const modelLoadProm = Models.loadModels();
+				modelLoadProm.then(init, function() {
+					console.error("Could not load models.");
+				});
+			}
 
             function init(){
                 initTHREE();
                 initControls();
+				initGameBoard();
                 initPointer();
-                
+				initReact();
                 // begin the simulation loop
                 requestAnimationFrame(frame);
-				
-				mayn();
             }
 
-            //
-            // Functionality provided by three.js:
-            // 
+			function initReact() {
+				ReactDOM.render(
+				  <App />,
+				  document.getElementById('gui')
+				);
+			}
+
+			function initGameBoard() {
+				gameBoard = new GameBoard();
+				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX);
+				camera.position.set(600, 510, gameBoard.graphics.getCenter().z)
+				
+				const target = gameBoard.graphics.getCenter();
+                controls.target.set(target.x, target.y, target.z);
+				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+				var material = new THREE.MeshBasicMaterial( {color: 0xff0000, transparent:true, opacity:0.0} );
+				debugSphere = new THREE.Mesh( geometry, material );
+				debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
+				scene.add( debugSphere );
+			}
+
             function initTHREE(){
 
                 // Code from three.js scene creation example.
                 // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
                 scene = new THREE.Scene(); // Create new scene
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 9000); 
-//                camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 9000); 
-//                camera.position.set(510, 410, -525)
                 renderer = new THREE.WebGLRenderer({antialias: true});
                 renderer.setSize(window.innerWidth, window.innerHeight);
 				renderer.domElement.id = "myCanvas"
                 document.body.appendChild(renderer.domElement);
-//                document.getElementById("gui").appendChild(renderer.domElement);
 
                 renderer.setClearColor(0xf7f7f7);
                 // Code from three.js ambient light example:
@@ -179,48 +128,12 @@
                 directionalLight1.shadow.mapSize.height = shadowMapHeight;
                 scene.add(directionalLight1);
 				
-//				directionalLight2.position.copy(lightPosition2);
-//                directionalLight2.castShadow = true;
-//                directionalLight2.shadow.camera.right = shadowFrustum;
-//                directionalLight2.shadow.camera.left = -shadowFrustum;
-//                directionalLight2.shadow.camera.top = shadowFrustum;
-//                directionalLight2.shadow.camera.bottom = -shadowFrustum;
-//                directionalLight2.shadow.mapSize.width = shadowMapWidth;
-//                directionalLight2.shadow.mapSize.height = shadowMapHeight;
-//                scene.add(directionalLight2);
-//                
-//                const cubeTextureLoader = new THREE.CubeTextureLoader();
-//				cubeTextureLoader.setPath( 'skybox/' );
-//
-//				const cubeTexture = cubeTextureLoader.load( [
-//					"wrath_ft.jpg", "wrath_bk.jpg",
-//					"wrath_up.jpg", "wrath_dn.jpg",
-//					"wrath_rt.jpg", "wrath_lf.jpg"
-//				] );
-//
-//				scene.background = cubeTexture;
-                
-                gameBoard = new GameBoard();
-				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX);
-				camera.position.set(600, 510, gameBoard.graphics.getCenter().z)
-                
-				// Debug Sphere
-//				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
-//				var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-//				var sphere = new THREE.Mesh( geometry, material );
-//				sphere.position.set(getCenterPoint(gameBoard.graphics.mesh));
-//				scene.add( sphere );
-				
-//				ReactDOM.render(
-//				  <h1>Hello, world!</h1>,
-//				  document.getElementById('gui')
-//				);
-				
-				ReactDOM.render(
-				  <App />,
-				  document.getElementById('gui')
-				);
-				
+				window.addEventListener( 'resize', onWindowResize, false );
+				function onWindowResize(){
+					camera.aspect = window.innerWidth / window.innerHeight;
+					camera.updateProjectionMatrix();
+					renderer.setSize( window.innerWidth, window.innerHeight );
+				}
             }
             
             function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
@@ -246,23 +159,6 @@
                 controls.dynamicDampingFactor = 0.2; // set dampening factor
                 controls.minDistance = 100
                 controls.maxDistance = 2250
-                
-				const target = gameBoard.graphics.getCenter();
-                controls.target.set(target.x, target.y, target.z);
-				
-				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
-				var material = new THREE.MeshBasicMaterial( {color: 0xff0000, transparent:true, opacity:0.0} );
-				debugSphere = new THREE.Mesh( geometry, material );
-				debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
-				scene.add( debugSphere );
-				
-				window.addEventListener( 'resize', onWindowResize, false );
-				function onWindowResize(){
-					camera.aspect = window.innerWidth / window.innerHeight;
-					camera.updateProjectionMatrix();
-					renderer.setSize( window.innerWidth, window.innerHeight );
-				}
-
             }
 
             let last = 0;
@@ -277,90 +173,32 @@
                 dt = now - last; // calculate the amount of time the last frame took
                 accumulation += Math.min(1, dt/1000);	// increase accumulation by the amount of time the last frame took and limit accumulation time to 1 second.
 
-                keyInputs(); // update mouse input
+                stateManager.keyInputs(); // update mouse input
 
                 // if the accumulated time is larger than the fixed time-step, continue to
                 // update the simulation until it is caught up to real time
                 while(accumulation >= step){
 
-                    update(); // update the simulation
+                    stateManager.update(); // update the simulation
                     accumulation -= step;
 
                 }
 
                 // render the scene
-                render(scene, camera);
+                stateManager.render(scene, camera);
 
                 last = now;
                 requestAnimationFrame(frame); // repeat the loop
             }
 
 
-
-
-
-
-
-
-            // update mouse controls
-            function keyInputs(){
-
-                controls.update();
-//				debugSphere.position.set(0, controls.target.y, controls.target.z);
-				debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
-                pointer.keyInputs(scene, camera, gameBoard)
-
-            }
-
-            // update the simulation
-            function update(){
-
-
-
-            }
-
-            // Render the simulation
-            function render(scene, camera){
-				
-                if(animationQueue.length > 0){
-//                    console.log(animationQueue[0])
-                    animationQueue[0].onAnimate()
-                    animationQueue[0].execute()
-                    animationQueue.shift()
-                }
-                
-                
-                
-                // Render the scene using functionality provided by the three.js library
-                // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
-                renderer.render(scene, camera);
-
-            }
-
-
-            // Function getRandomIntenger returns a random integer between lowerBound (inclusive) and upperBound (inclusive)
+            // Function getRandomIntenger returns a random integer between [lowerBound, upperBound]
             function getRandomInteger(lowerBound, upperBound){
-
                 //          [0, 1)                range                     
                 return Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
-
             }
-            
-			function mayn(){
-//				var text2 = document.createElement('div');
-//				text2.style.position = 'absolute';
-//				//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-//				text2.style.width = 100;
-//				text2.style.height = 100;
-//				text2.style.backgroundColor = "blue";
-//				text2.innerHTML = "hi there!";
-//				text2.style.top = 200 + 'px';
-//				text2.style.left = 200 + 'px';
-//				document.body.appendChild(text2);
-			}
 			
         </script>
-		
 		
         
 	</head>
@@ -374,61 +212,55 @@
 -->
 		<script type="text/babel">
 
-				class App extends React.Component {
-					render() {
-						return (
-							<div className="overlay">
-								<RedoButton src="./icons/arrow_forward_ios-24px.svg" id="redoButton"/>
-								<UndoButton src="./icons/arrow_back_ios-24px.svg" id="undoButton"/>
-							</div>
-						);
-					}
+			class App extends React.Component {
+				render() {
+					return (
+						<div className="overlay">
+							<RedoButton src="./icons/arrow_forward_ios-24px.svg"/>
+							<UndoButton src="./icons/arrow_back_ios-24px.svg"/>
+						</div>
+					);
+				}
+			}
+
+			class MoveHistoryButton extends React.Component {
+				construcor(props) {
+					this.state = {};
+					this.id = id;
 				}
 
-				class MoveHistoryButton extends React.Component {
-					construcor(props) {
-	//					super(props);
-						this.state = {};
+				render() {
+					return (
+						<a onClick={this.handleClick} className="button" id={this.id}>
+							<img src={this.props.src}/>
+						</a>
+					);
+				}
+			}
 
-						this.handleClick = this.handleClick.bind(this);
-					}
-
-					handleClick() {
-
-					}
-
-					render() {
-						return (
-							<a onClick={this.handleClick} className="button" id={this.props.id}>
-								<img src={this.props.src}/>
-							</a>
-						);
-					}
+			class RedoButton extends MoveHistoryButton {
+				constructor(props) {
+					super(props);
+					this.id = "redoButton";
+					this.handleClick = this.handleClick.bind(this);
 				}
 
-				class RedoButton extends MoveHistoryButton {
-					constructor(props) {
-						super(props);
-						this.handleClick = this.handleClick.bind(this);
-					}
+				handleClick() {
+					moveManager.redo();
+				}
+			}
 
-					handleClick() {
-						moveManager.redo();
-					}
+			class UndoButton extends MoveHistoryButton {
+				constructor(props) {
+					super(props);
+					this.id = "undoButton";
+					this.handleClick = this.handleClick.bind(this);
 				}
 
-				class UndoButton extends MoveHistoryButton {
-					constructor(props) {
-						super(props);
-						this.handleClick = this.handleClick.bind(this);
-					}
-
-					handleClick() {
-						moveManager.undo();
-					}
+				handleClick() {
+					moveManager.undo();
 				}
-
-
+			}
 
 		</script>
 	</body>

@@ -51,6 +51,15 @@ const Models = {
             transparent: true,
             opacity: 0.6,
         },
+		
+		lightGreen: {
+            color: 0x42f5aa,
+            reflectivity: 10,
+            shininess: 25,
+            shading: THREE.SmoothShading,
+            transparent: true,
+            opacity: 0.6,
+        },
         
         orange: {
             color: 0xFFA500,
@@ -180,26 +189,23 @@ const Models = {
     geometries: {},
     pieceIndices: {},
     loadModels: function(){
-        
-        // Loads all chess models then calls init when finished
-        
-        const manager = new THREE.LoadingManager();
-        manager.onLoad = init // Initialize game when finished loading
-        const loader = new THREE.JSONLoader(manager);
-        
-        let index = 0;
-        Models.pieceData.forEach(piece => {
-            
-            const path = Models.directory + piece.fileName
-            
-            loader.load(path, function(geometry, materials) {
-                Models.geometries[piece.name] = geometry
-            });
-            
-            Models.pieceIndices[piece.name] = index++
-            
-        });
-        
+		return new Promise(function(resolve, reject) {
+			// Loads all chess models then calls init when finished
+			const manager = new THREE.LoadingManager();
+			manager.onLoad = resolve // Initialize game when finished loading
+			const loader = new THREE.JSONLoader(manager);
+
+			let index = 0;
+			Models.pieceData.forEach(piece => {
+
+				const path = Models.directory + piece.fileName
+				loader.load(path, function(geometry, materials) {
+					Models.geometries[piece.name] = geometry
+				});
+
+				Models.pieceIndices[piece.name] = index++
+			});
+		});
     }
     
 }

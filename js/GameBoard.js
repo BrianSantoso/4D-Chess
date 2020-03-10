@@ -540,8 +540,8 @@ BoardGraphics.checkerboard3d = function(segments=8, boardSize=100, z=0, w=0, opa
 	let materialsTop = [new THREE.MeshBasicMaterial({color: 0xccccfc}), new THREE.MeshBasicMaterial({color: 0x444464})];
 	let materialsBottom = [new THREE.MeshBasicMaterial({color: 0xccccfc}), new THREE.MeshBasicMaterial({color: 0x444464})];
 	materialsTop.forEach(m => {
-        m.transparent = true
-        m.opacity = opacity
+        m.transparent = true;
+        m.opacity = opacity;
         m.side = THREE.FrontSide;
     });
 	materialsBottom.forEach(m => {
