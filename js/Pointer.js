@@ -11,7 +11,8 @@ function Pointer(scene, camera, gameBoard, moveManager){
             https://jsfiddle.net/wilt/52ejur45/
     
     */
-    
+    this.x = 0;
+	this.y = 0;
     this.scene = scene
     this.camera = camera
     this.gameBoard = gameBoard
@@ -19,11 +20,13 @@ function Pointer(scene, camera, gameBoard, moveManager){
     this.rayCaster = new THREE.Raycaster()
     this.pos = new THREE.Vector2()
     this.possibleMoves;
+	this.dragging = false;
     
     this.pieceSelector = new PieceSelector(this, scene, camera, gameBoard, gameBoard.graphics.piecesContainer.children)
     this.moveSelector = new MoveSelector(this, scene, camera, gameBoard, gameBoard.graphics.possibleMovesContainer.children)
     this.keyInputs = function(scene, camera, gameBoard){
         
+		this.updateDragVector();
         this.pieceSelector.run(this.rayCaster, this.pos, highlight=!this.pieceSelector.SELECTED)
 //        this.moveSelector.run(this.rayCaster, this.pos, highlight=false)
         
@@ -124,31 +127,74 @@ function Pointer(scene, camera, gameBoard, moveManager){
 //        console.log(event.clientX, event.clientY)
         
     }
+	
+//	this.dragDirection = function() {
+//		return dragDirection({clientX: this.x, clientY: this.y});
+//	}
+//	
+	this.updateDragVector = function() {
+		this.dragVector = this.dragDirection({clientX: this.x, clientY: this.y});
+	}
     
     
     let clientClickX, clientClickY;
-
+	const DRAG_ZERO = new THREE.Vector2(0, 0);
+	this.dragVector = DRAG_ZERO;
+	
+	function intentionalClick(ev, EPSILON=5, euclidean=false) {
+		const x = ev.clientX;
+        const y = ev.clientY;
+		if (euclidean) {
+			return dragDistance(ev) <= EPSILON;
+		} else {
+			return Math.abs(clientClickX - x) <= EPSILON && Math.abs(clientClickY - y) <= EPSILON;
+		}
+	}
+	
+	function dragDistance(ev) {
+		if (this.dragging) {
+			const dx = ev.clientX - clientClickX;
+			const dy = ev.clientY - clientClickY;
+			return Math.sqrt(dx*dx + dy*dy);
+		} else {
+			return -1;
+		}
+	}
+	
+	this.dragDirection = function dragDirection(ev) {
+		if (this.dragging) {
+			const dx = ev.clientX - clientClickX;
+			const dy = ev.clientY - clientClickY;
+			return new THREE.Vector2(dx, dy);
+		} else {
+			return DRAG_ZERO;
+		}
+	}
+	
     renderer.domElement.addEventListener('mousedown', function(ev){
+		this.dragging = true;
         clientClickX = ev.clientX;
         clientClickY = ev.clientY;
     }.bind(this), false);
 
     renderer.domElement.addEventListener('mouseup', function (ev){
+		this.dragging = false;
+		if (!this.clicks) {
+			return;
+		}
         if (ev.target == renderer.domElement) {
-            var x = ev.clientX;
-            var y = ev.clientY;
             // If the mouse moved since the mousedown then don't consider this a selection
-            EPSILON = 5
-            if( Math.abs(x - clientClickX) > EPSILON || Math.abs(y - clientClickY) > EPSILON )
-                return;
-            
-            this.onClick(ev, gameBoard);
+            if (intentionalClick(ev, 5)) {
+				this.onClick(ev, gameBoard);
+			}
         }
     }.bind(this), false);
     
-    renderer.domElement.addEventListener('mousemove', function(e){
+    renderer.domElement.addEventListener('mousemove', function(ev){
         
-        this.onMove(e);
+		this.x = ev.clientX;
+		this.y = ev.clientY;
+        this.onMove(ev);
         
     }.bind(this), false);
 	

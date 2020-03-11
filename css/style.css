@@ -8,6 +8,16 @@ body {
 	position: relative;
 }
 
+.text {
+/*	font-family: 'Roboto Mono', monospace;*/
+	font-family: 'Source Code Pro', monospace;
+/*	font-family: 'Ubuntu Mono', monospace;*/
+	color: #3f3f3f;
+	font-size: 3.8em;
+/*	font-weight: 700;*/
+/*    letter-spacing: 4px;*/
+}
+
 .overlay {
 	position: absolute;
 	width: 100%;
@@ -24,7 +34,7 @@ body {
 								  supported by Chrome, Opera and Firefox */				
 }
 
-.button > img {
+.circleButton > img {
 	/* No Drag */
 	-webkit-user-drag: none; /* Safari */
 	 -khtml-user-drag: none; /* Konqueror HTML */
@@ -35,7 +45,7 @@ body {
 								  supported by Chrome, Opera and Firefox */
 }
 
-.button {
+.moveHistoryButton {
 	position: fixed;
 	padding: 1%; /* Circle Radius */
 	border-radius: 50%; /* Make circle */
@@ -45,20 +55,107 @@ body {
 	z-index: 999;
 	box-shadow: 0 0 4px rgba(0,0,0,.15);
 	pointer-events: auto;
+	bottom: 1em;
+	
+	border-radius:0.15em;
+	box-sizing: border-box;
+	font-family:'Roboto',sans-serif;
+	text-transform:uppercase;
+	box-shadow:inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17);
 }
 
-.button:hover {
+.moveHistoryButton:active{
+/*	top:0.1em;*/
+	bottom: 0.8em;
+	box-shadow: none;
+}
+/*
+@media all and (max-width:30em) {
+ .circleButton {
+  display:block;
+  margin:0.4em auto;
+ }
+}
+*/
+
+.moveHistoryButton:hover {
 	opacity: 0.9;
 }
 
+.rectButton {
+	pointer-events: auto;
+	display: block;
+/*	position: absolute;*/
+	transition: .4s;
+	box-shadow: 0 0 4px rgba(0,0,0,.17);
+	border-radius: 8px;
+	
+}
+
+.rectButton:hover {
+/*	background-color: #3f3f3f;*/
+/*	box-shadow: 0 0 4px rgba(0,0,0,.1);*/
+}
+
 #redoButton {
-	bottom: 16px;
 	right: 42%;
 }
 
 #undoButton {
-
-	bottom: 16px;
 	right: 58%;
+}
 
+#playButton {
+/*
+	width: 24em;
+	height: 14.8em;
+*/
+	margin-left: auto;
+    margin-right: auto;
+	margin-top: 5%;
+	margin-bottom: auto;
+	
+	right: 50%;
+	bottom: 16px;
+	margin-bottom: 0px;
+	width: 7em;
+    height: 3em;
+	
+	background-color: #f6f6f6;
+	color: #3f3f3f;
+	
+	border: none;
+	text-align: center;
+	text-decoration: none;
+	font-size: 4em;
+}
+
+#privateRoomButton {
+	margin-left: auto;
+    margin-right: auto;
+	margin-top: 1em;
+	margin-bottom: auto;
+	border: none;
+	text-align: center;
+	text-decoration: none;
+	font-size: 2em;
+	width: 15em;
+    height: 2em;
+	
+	background-color: #3f3f3f;
+	color: #f6f6f6;
+}
+
+
+#gameTitle {
+	text-align: center;
+	margin-top: 0.5em;
+	margin-bottom: 0;
+	font-size: 5em;
+}
+
+#gameSubTitle {
+	text-align: center;
+	margin-top: 0.1em;
+	font-size: 2em;
 }
