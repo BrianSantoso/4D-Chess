@@ -14,6 +14,7 @@ body {
 /*	font-family: 'Ubuntu Mono', monospace;*/
 	color: #3f3f3f;
 	font-size: 3.8em;
+/*	font-size: 7.6vh;*/
 /*	font-weight: 700;*/
 /*    letter-spacing: 4px;*/
 }
@@ -112,14 +113,27 @@ body {
 */
 	margin-left: auto;
     margin-right: auto;
-	margin-top: 5%;
+/*	margin-top: 5%;*/
+	margin-top: 10vh;
 	margin-bottom: auto;
 	
 	right: 50%;
-	bottom: 16px;
+/*	bottom: 16px;*/
 	margin-bottom: 0px;
-	width: 7em;
-    height: 3em;
+/*	width: 7em;*/
+	
+/*    height: 3em;*/
+/*    height: 3em;*/
+	
+/*
+	width: 34vw;
+	height: 31vh;
+*/
+	
+	width: auto;
+	height: auto;
+	padding: 9.5vh 11vw;
+	
 	
 	background-color: #f6f6f6;
 	color: #3f3f3f;
@@ -127,20 +141,33 @@ body {
 	border: none;
 	text-align: center;
 	text-decoration: none;
-	font-size: 4em;
+/*	font-size: 4em;*/
+	font-size: 10.4vh;
 }
 
 #privateRoomButton {
 	margin-left: auto;
     margin-right: auto;
-	margin-top: 1em;
+	margin-top: 5vh;
 	margin-bottom: auto;
 	border: none;
 	text-align: center;
 	text-decoration: none;
-	font-size: 2em;
-	width: 15em;
-    height: 2em;
+/*	font-size: 2.5vw;*/
+	font-size: 5.2vh;
+/*	font-size: 2em;*/
+/*	font-size: 5.2vh;*/
+/*	width: 15em;*/
+/*    height: 2em;*/
+	
+/*
+	width: 38vw;
+	height: 10vh;
+*/
+	
+	width: auto;
+	height: auto;
+	padding: 2vh 4.8vw;
 	
 	background-color: #3f3f3f;
 	color: #f6f6f6;
@@ -149,13 +176,16 @@ body {
 
 #gameTitle {
 	text-align: center;
-	margin-top: 0.5em;
+/*	margin-top: 0.5em;*/
+	margin-top: 6.5vh;
 	margin-bottom: 0;
-	font-size: 5em;
+/*	font-size: 5em;*/
+	font-size: 13vh;
 }
 
 #gameSubTitle {
 	text-align: center;
-	margin-top: 0.1em;
-	font-size: 2em;
+/*	margin-top: 0.1em;*/
+	margin-top: 1.3vh;
+	font-size: 5.5vh;
 }
