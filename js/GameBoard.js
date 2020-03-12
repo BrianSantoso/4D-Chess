@@ -61,6 +61,25 @@ function BoardGraphics(gameBoard){
 
 BoardGraphics.prototype = {
 	
+	getBoundingBox: function() {
+		const offset = this.boardSize / 2;
+		const originOffset = new THREE.Vector3(offset, 0, -offset);
+		const logicalLocalOrigin = originOffset.clone().multiplyScalar(-1);
+		const globalLLO = logicalLocalOrigin.clone().add(this.mesh.position);
+		
+		const globalBottomLeft = logicalLocalOrigin.clone().add(this.mesh.position);
+		const halfDiagonal = this.getCenter().sub(globalLLO);
+		const extraHeight = new THREE.Vector3(0, this.verticalIncrement, 0);
+		const globalTopRight = this.getCenter().clone().add(halfDiagonal).clone().add(extraHeight);
+		
+		const extraSpace = new THREE.Vector3(this.squareSize * 3, 0, -this.squareSize)
+		
+		return {
+			bottomLeft: globalBottomLeft.sub(extraSpace),
+			topRight: globalTopRight.add(extraSpace)
+		};
+	},
+	
 	getCenter: function(){
 		const numHalfBoards = (this.n - 1) / 2;
 		const localZ = -(this.boardSize + this.horizontalGap) * numHalfBoards;
@@ -365,7 +384,7 @@ GameBoard.prototype = {
         this.spawnPiece(Knight, 0, 2, 0, 0, 0)
         this.spawnPiece(Rook, 0, 3, 0, 0, 0)
         this.spawnPiece(Bishop, 0, 0, 1, 0, 0)
-        this.spawnPiece(Queen, 0, 1, 1, 0, 0)
+        this.spawnPiece(Pawn, 0, 1, 1, 0, 0)
         this.spawnPiece(Pawn, 0, 2, 1, 0, 0)
         this.spawnPiece(Bishop, 0, 3, 1, 0, 0)
         this.spawnPiece(Bishop, 0, 0, 2, 0, 0)
@@ -436,7 +455,7 @@ GameBoard.prototype = {
         this.spawnPiece(Knight, 1, 2, 0, l, l)
         this.spawnPiece(Rook, 1, 3, 0, l, l)
         this.spawnPiece(Bishop, 1, 0, 1, l, l)
-        this.spawnPiece(Queen, 1, 1, 1, l, l)
+        this.spawnPiece(Pawn, 1, 1, 1, l, l)
         this.spawnPiece(Pawn, 1, 2, 1, l, l)
         this.spawnPiece(Bishop, 1, 3, 1, l, l)
         this.spawnPiece(Bishop, 1, 0, 2, l, l)

@@ -98,11 +98,11 @@
 				
 				controls.target.set(coolTar.x, coolTar.y, coolTar.z);
 				
-				var geometry = new THREE.SphereGeometry( 5, 32, 32 );
-				var material = new THREE.MeshBasicMaterial( {color: 0xff0000, transparent:true, opacity:0.0} );
-				debugSphere = new THREE.Mesh( geometry, material );
-				debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
-				scene.add( debugSphere );
+				debugSphere = DEBUG(controls.target, 0, 0);
+				
+//				let boundingBox = gameBoard.graphics.getBoundingBox();
+//				DEBUG(boundingBox.bottomLeft);
+//				DEBUG(boundingBox.topRight);
 			}
 
             function initTHREE(){
@@ -222,6 +222,15 @@
 				camera.position.x = x * Math.cos(theta) + z * Math.sin(theta);
     			camera.position.z = z * Math.cos(theta) - x * Math.sin(theta);
 				camera.position.add(center);
+			}
+			
+			function DEBUG(pos, color=0xff0000, opacity=0.5) {
+				const geometry = new THREE.SphereGeometry( 5, 32, 32 );
+				const material = new THREE.MeshBasicMaterial( {color: color, transparent:true, opacity: opacity} );
+				const DEBUG_SPHERE = new THREE.Mesh( geometry, material );
+				DEBUG_SPHERE.position.set(pos.x, pos.y, pos.z);
+				scene.add(DEBUG_SPHERE);
+				return DEBUG_SPHERE;
 			}
 			
         </script>

@@ -16,12 +16,39 @@ function render() {
 	renderer.render(scene, camera);
 }
 
+function fixControlsTargetToBox() {
+	const BB = gameBoard.graphics.getBoundingBox();
+	const T = controls.target;
+	if(T.x < BB.bottomLeft.x) {
+		T.x = BB.bottomLeft.x;
+	}
+	if(T.x > BB.topRight.x) {
+		T.x = BB.topRight.x;
+	}
+	
+	if(T.y < BB.bottomLeft.y) {
+		T.y = BB.bottomLeft.y;
+	}
+	if(T.y > BB.topRight.y) {
+		T.y = BB.topRight.y;
+	}
+	
+	if(T.z > BB.bottomLeft.z) {
+		T.z = BB.bottomLeft.z;
+	}
+	if(T.z < BB.topRight.z) {
+		T.z = BB.topRight.z;
+	}
+}
+
 ClientState.GAME_STATE = new ClientState(
 	// update mouse controls
 	function keyInputs() {
 		pointer.clicks = true;
 		controls.noPan = false;
 		controls.update();
+		fixControlsTargetToBox()
+		
 		debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
 		pointer.keyInputs(scene, camera, gameBoard)
 	},
