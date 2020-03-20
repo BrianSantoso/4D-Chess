@@ -38,13 +38,22 @@ Piece.prototype = {
     },
     setMesh: function(mesh){
         this.mesh = mesh
-    }
-    
-}
-
-Piece.prototype.update = function(board, x0, y0, z0, w0, x1, y1, z1, w1){
-    
-    this.hasMoved = true
+    },
+	
+	update: function(board, x0, y0, z0, w0, x1, y1, z1, w1) {
+		const metaData = {firstMove: !this.hasMoved}
+    	this.hasMoved = true
+		return metaData;
+	},
+	
+	package: function() {
+		return {
+			team: this.team,
+			type: this.type,
+			hasMoved: this.hasMoved,
+			justMovedTwoSpaces: this.justMovedTwoSpaces || false
+		}
+	}
     
 }
 
@@ -556,3 +565,38 @@ Piece.removeIllegalMoves = function(positions, board, x, y, z, w){
 
     return legalPositions
 }
+
+Piece.boardsEqual = function(b0, b1, compareMeshes=false) {
+	const b0_x = b0.length
+    const b0_y = b0[0].length
+    const b0_z = b0[0][0].length
+    const b0_w = b0[0][0][0].length
+	
+	const b1_x = b1.length
+    const b1_y = b1[0].length
+    const b1_z = b1[0][0].length
+    const b1_w = b1[0][0][0].length
+	
+	const dimEq = b0_x == b1_x && b0_y == b1_y && b0_z == b1_z && b0_w == b1_w;
+	if (!dimEq) {
+		console.error("Dimensions not equal")
+	}
+	
+	for(let x = 0; x < b0_x; x++) {
+		for(let y = 0; y < b0_y; y++) {
+			for(let z = 0; z < b0_z; z++) {
+				for(let w = 0; w < b0_w; w++) {
+					const piece0 = b0[x][y][z][w];
+					const piece1 = b1[x][y][z][w];
+					if (typeof(piece0) != typeof(piece1)) {
+						return false
+					}
+				}
+			}
+		}
+	}
+	
+	return true
+//	Piece.boardsEqual(gameBoard.pieces, backendBoard.pieces)
+}
+

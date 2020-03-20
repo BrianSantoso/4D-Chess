@@ -162,18 +162,17 @@ const Models = {
         const pieceData = Models.pieceData[Models.pieceIndices[piece]]
         const geometry = Models.geometries[piece]
         let mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial(material))
+//        let mesh = new THREE.Mesh(geometry, new THREE.MeshNormalMaterial(material))
         mesh.position.set(0, 0, 0);
         mesh.rotation.set(pieceData.rotation.x, pieceData.rotation.y, pieceData.rotation.z);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
-        
 		mesh.scale.set(Models.SCALE_FACTOR, Models.SCALE_FACTOR, Models.SCALE_FACTOR)
 		const height = new THREE.Box3().setFromObject(mesh).max.y;
-		const dHeight = height * (scale - 1)
+//		const dHeight = height * (scale - 1)
 		
 		mesh.scale.multiplyScalar(scale)
-//		mesh.position.set(x, y - dHeight / 2, z)
 		mesh.position.set(x, y, z)
 		
 		

@@ -8,226 +8,8 @@
 */
 
 
-function GameBoard(n=4){
-
-    this.n = n;
-    this.position = new THREE.Vector3(0, 0, 0);
-    
-	this.graphics = new BoardGraphics(this);
-    this.pieces = this.initPieces();
-    
-    let halfN = Math.floor((this.n - 1) / 2)
-    this.test(halfN, halfN, halfN+2, halfN)
-}
-
-function BoardGraphics(gameBoard){
-	this.gameBoard = gameBoard;
-	this.n = gameBoard.n;
-	this.squareSize = 50
-	this.boardSize = this.squareSize * this.n;
-    this.verticalIncrement = 100 * 1.75
-    this.horizontalGap = this.squareSize * 1.6
-    this.horizontalIncrement = this.n * this.squareSize + this.horizontalGap
-    this.globalLength = this.horizontalIncrement * (this.n - 1)
-    this.globalHeight = this.verticalIncrement * this.n
-	this.boardHeight = 5;
-    this.EPSILON = 1
-	
-	this.mesh = new THREE.Object3D();
-	this.boardContainer = new THREE.Object3D();
-    this.piecesContainer = new THREE.Object3D();
-    this.possibleMovesContainer = new THREE.Object3D();
-	this.boardContainer.name = 'boardContainer';
-	this.piecesContainer.name = 'piecesContaier';
-	this.possibleMovesContainer.name = 'possibleMovesContainer';
-	this.mesh.add(this.boardContainer)
-	this.mesh.add(this.piecesContainer)
-	this.mesh.add(this.possibleMovesContainer)
-	scene.add(this.mesh);
-	
-	let bottom = 0;
-	let left = 0;
-	for (let w = 0; w < this.n; w++){
-		for(let i = 0; i < this.n; i++){
-			let checker = BoardGraphics.checkerboard3d(this.n, this.n * this.squareSize, z=i, w, opacity=0.4, this.boardHeight) // Construct 2D checkerboard planes
-			checker.position.set(0, bottom + i*this.verticalIncrement, left - w*this.horizontalIncrement)
-			rotateObject(checker, -90, 0, 0)
-			this.boardContainer.add(checker)
-		}
-	}
-	
-}
 
 
-BoardGraphics.prototype = {
-	
-	getBoundingBox: function() {
-		const offset = this.boardSize / 2;
-		const originOffset = new THREE.Vector3(offset, 0, -offset);
-		const logicalLocalOrigin = originOffset.clone().multiplyScalar(-1);
-		const globalLLO = logicalLocalOrigin.clone().add(this.mesh.position);
-		
-		const globalBottomLeft = logicalLocalOrigin.clone().add(this.mesh.position);
-		const halfDiagonal = this.getCenter().sub(globalLLO);
-		const extraHeight = new THREE.Vector3(0, this.verticalIncrement, 0);
-		const globalTopRight = this.getCenter().clone().add(halfDiagonal).clone().add(extraHeight);
-		
-		const extraSpace = new THREE.Vector3(this.squareSize * 3, 0, -this.squareSize)
-		
-		return {
-			bottomLeft: globalBottomLeft.sub(extraSpace),
-			topRight: globalTopRight.add(extraSpace)
-		};
-	},
-	
-	getCenter: function(){
-		const numHalfBoards = (this.n - 1) / 2;
-		const localZ = -(this.boardSize + this.horizontalGap) * numHalfBoards;
-		const localY = this.verticalIncrement * numHalfBoards;
-		const localCenter = new THREE.Vector3(0, localY, localZ);
-		return localCenter.add(this.mesh.position);
-	},
-	
-	boardCoordinates: function(x, y, z, w){
-        
-        // Get world coordinates from board coordinates
-        
-        const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
-        
-        const xShift = x * this.squareSize
-        const yShift = y * this.verticalIncrement + this.EPSILON
-        const zShift = -(z * this.squareSize + w * this.horizontalIncrement)
-        const translation = new THREE.Vector3(xShift, yShift, zShift)
-        
-        return zero.add(translation).add(this.boardContainer.position)
-        
-    },
-	
-	worldCoordinates: function(pos){
-        
-        // Get board coordinates from world coordinates
-        const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
-        pos = pos.clone().sub(zero).sub(this.boardContainer.position)
-        
-        let x = Math.floor(pos.x / this.squareSize)
-        let y = Math.floor(pos.y / this.verticalIncrement)
-        let numGaps = Math.floor(-pos.z / this.horizontalIncrement)
-        let z = Math.floor((-pos.z - (numGaps * this.horizontalIncrement)) / this.squareSize)
-        let w = numGaps
-        
-//        pos.sub(this.boardContainer.position)
-        
-        return new THREE.Vector4(x, y, z, w)
-    },
-	
-	showPossibleMoves: function(locations, piece, materialScheme={}, canRayCast){
-		materialScheme = Object.assign({
-			0: {
-				moveMaterial: Models.materials.green,
-				attackMaterial: Models.materials.red
-			},
-			1: {
-				moveMaterial: Models.materials.green,
-				attackMaterial: Models.materials.red
-			},
-		}, materialScheme)
-		
-        this.hidePossibleMoves();
-        
-        locations.forEach(pos => {
-			
-			coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
-			let material;
-			let shadowPiece;
-			if(pos.possibleCapture){
-				const attackedPiece = this.gameBoard.pieces[pos.x][pos.y][pos.z][pos.w]
-				material = materialScheme[piece.team].attackMaterial;
-				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)
-				if(attackedPiece.team === 0){
-					rotateObject(shadowPiece, 0, 180, 0)
-				}
-			} else {
-				let material = materialScheme[piece.team].moveMaterial;
-				shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)
-			}
-				
-			this.possibleMovesContainer.add(shadowPiece)
-            
-            			
-        });
-        
-    },
-    
-    showPossibleMoves2: function(x, y, z, w, materialScheme){
-      
-        const locations = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
-        
-        this.showPossibleMoves(locations, piece, materialScheme)
-        
-    },
-    
-    hidePossibleMoves: function(objectName='possibleMoves'){
-        while(this.possibleMovesContainer.children.length){
-			const mesh = this.possibleMovesContainer.children[0]
-			Selector.unhighlight(mesh)
-            this.possibleMovesContainer.remove(mesh);
-        }
-    },
-	
-	moveMesh: function(piece, x1, y1, z1, w1){
-		const currentMeshCoords = piece.mesh.position
-        const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
-        
-        const frames = 12
-        const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, frames)
-        Animation.addToQueue(animationQueue, piece.mesh, interpolatedCoords)
-        piece.mesh.canRayCast = false // temporarily disable piece's ability to be found in rayCast
-        
-        animationQueue[animationQueue.length - 1].onAnimate = function(){
-            piece.mesh.canRayCast = true // re-enable piece's ability to be found in rayCast
-            if(piece.type === 'pawn' && this.isOnPromotionSquare(x1, y1, z1, w1)){
-				// Normal capture logic and animation is still executed,
-				// but here we remove the pawn's sprite and spawn in a queen
-				// Notice that we do not use GameObject.removePiece() method because
-				// it will also remove its game object, which is logic that should 
-				// be separate from graphics
-				this.graphics.removeMesh(piece)
-				this.graphics.piecesContainer.add(queen.mesh); // Only add mesh to scene when animation is finished
-            }
-        }.bind(this.gameBoard)
-	},
-	
-	createMesh: function(typeString, team, x, y, z, w, addToContainer=true){ 
-		
-		// Create mesh (without game object), add it to the scene, and return the mesh
-		const worldPos = this.boardCoordinates(x, y, z, w)
-		const material = team === 0 ? Models.materials.white : Models.materials.black
-		const mesh = Models.createMesh(typeString, material, worldPos.x, worldPos.y, worldPos.z)
-		if(team === 0) rotateObject(mesh, 0, 180, 0)
-		if(addToContainer){
-			this.piecesContainer.add(mesh)
-		}
-		
-		return mesh
-		
-	},
-	
-	setMesh: function(piece, x, y, z, w, addToContainer=true){
-//		const worldPos = this.boardCoordinates(x, y, z, w)
-//		const mesh = this.createMesh(piece.type, piece.team, worldPos.x, worldPos.y, worldPos.z, worldPos.w);
-		const mesh = this.createMesh(piece.type, piece.team, x, y, z, w, addToContainer);
-        piece.setMesh(mesh);
-	},
-	
-	removeMesh: function(piece){
-		this.piecesContainer.remove(piece.mesh);
-	},
-	
-	respawnMesh: function(piece){
-		this.piecesContainer.add(piece.mesh);
-	}
-	
-}
 
 GameBoard.prototype = {
     
@@ -269,7 +51,7 @@ GameBoard.prototype = {
 		this.pieces[x0][y0][z0][w0] = new Piece(); // Remove game object from board
 		this.removePiece(x1, y1, z1, w1); // Immediately remove target game object and sprite (do nothing if square is empty)
         this.pieces[x1][y1][z1][w1] = piece; // Replace object in target square with moved piece
-        piece.update(this.pieces, x0, y0, z0, w0, x1, y1, z1, w1);
+        Object.assign(metaData, piece.update(this.pieces, x0, y0, z0, w0, x1, y1, z1, w1));
 		
 		if(piece.type === 'pawn' && this.isOnPromotionSquare(x1, y1, z1, w1)){
 			// Normal capture logic and animation is still executed,
@@ -281,7 +63,8 @@ GameBoard.prototype = {
 			// The following 2 lines were causing bugs when spamming redo after a pawn promotion. Error was that the queen's mesh is undefined. The queen's .mesh property was not being set until the animation was complete. The fix was to create the mesh and set the queen's .mesh property immediately in the promotion logic, and only make it appear (add it to piecesContainer) when the animation is finished.
 //			queen = new Queen(piece.team);
 //			this.pieces[x1][y1][z1][w1] = queen;
-			queen = this.spawnPiece(Queen, piece.team, x1, y1, z1, w1, false);
+			let queen = this.spawnPiece(Queen, piece.team, x1, y1, z1, w1, false);
+			piece.descendant = queen;
 			
 			Object.assign(metaData, {promotion: true, newPiece: queen, oldPiece: piece});
 		}
@@ -305,8 +88,11 @@ GameBoard.prototype = {
 		}
 		this.pieces[move.x1][move.y1][move.z1][move.w1] = capturedPiece;
 		
-		if(move.metaData.captured){
+		if (move.metaData.captured) {
 			this.graphics.respawnMesh(capturedPiece); 
+		}
+		if (move.metaData.justMoved) {
+			originalPiece.hasMoved = false;
 		}
 		this.graphics.moveMesh(originalPiece, move.x0, move.y0, move.z0, move.w0);
 	},
@@ -341,13 +127,7 @@ GameBoard.prototype = {
 		this.applyToPieces(onlyTeam)
 	},
     
-	setSelectability: function(team, canMove){
-		// Enable/Disable piece rayCasting (block user interaction)
-		this.applyToTeam(function(piece){
-			
-			piece.mesh.selectable = canMove
-		}, team)
-	},
+	
 	
     isOnPromotionSquare: function(x, y, z, w){
 		const piece = this.pieces[x][y][z][w]
@@ -368,7 +148,7 @@ GameBoard.prototype = {
 		this.pieces[x][y][z][w] = new Piece();
 	},
     
-    inBounds: function(x, y, z, w){
+    inBounds: function(x, y, z, w) {
         return x >= 0 && x < this.n && y >= 0 && y < this.n && z >=0 && z < this.n && w >=0 && w < this.n;
     },
     
@@ -522,6 +302,282 @@ GameBoard.prototype = {
     
 }
 
+
+EmptyBoardGraphics.prototype = {
+	
+	getBoundingBox: function() {},
+	
+	getCenter: function(){},
+	
+	boardCoordinates: function(x, y, z, w){},
+	
+	worldCoordinates: function(pos){},
+	
+	showPossibleMoves: function(locations, piece, materialScheme={}, canRayCast){},
+    
+    showPossibleMoves2: function(x, y, z, w, materialScheme){},
+    
+    hidePossibleMoves: function(objectName='possibleMoves'){},
+	
+	moveMesh: function(piece, x1, y1, z1, w1){},
+	
+	createMesh: function(typeString, team, x, y, z, w, addToContainer=true){},
+	
+	setMesh: function(piece, x, y, z, w, addToContainer=true){},
+	
+	removeMesh: function(piece){},
+	
+	respawnMesh: function(piece){},
+	
+	setSelectability: function(piece, canMove) {},
+	
+	addToPiecesContainer: function(mesh) {}
+	
+}
+
+
+
+
+
+BoardGraphics.prototype = {
+	
+	getBoundingBox: function() {
+		const offset = this.boardSize / 2;
+		const originOffset = new THREE.Vector3(offset, 0, -offset);
+		const logicalLocalOrigin = originOffset.clone().multiplyScalar(-1);
+		const globalLLO = logicalLocalOrigin.clone().add(this.mesh.position);
+		
+		const globalBottomLeft = logicalLocalOrigin.clone().add(this.mesh.position);
+		const halfDiagonal = this.getCenter().sub(globalLLO);
+		const extraHeight = new THREE.Vector3(0, this.verticalIncrement, 0);
+		const globalTopRight = this.getCenter().clone().add(halfDiagonal).clone().add(extraHeight);
+		
+		const extraSpace = new THREE.Vector3(this.squareSize * 0, 0, -this.squareSize)
+		
+		return {
+			bottomLeft: globalBottomLeft.sub(extraSpace),
+			topRight: globalTopRight.add(extraSpace)
+		};
+	},
+	
+	getCenter: function(){
+		const numHalfBoards = (this.n - 1) / 2;
+		const localZ = -(this.boardSize + this.horizontalGap) * numHalfBoards;
+		const localY = this.verticalIncrement * numHalfBoards;
+		const localCenter = new THREE.Vector3(0, localY, localZ);
+		return localCenter.add(this.mesh.position);
+	},
+	
+	boardCoordinates: function(x, y, z, w){
+        
+        // Get world coordinates from board coordinates
+        
+        const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
+        
+        const xShift = x * this.squareSize
+        const yShift = y * this.verticalIncrement + this.EPSILON
+        const zShift = -(z * this.squareSize + w * this.horizontalIncrement)
+        const translation = new THREE.Vector3(xShift, yShift, zShift)
+        
+        return zero.add(translation).add(this.boardContainer.position)
+        
+    },
+	
+	worldCoordinates: function(pos){
+        
+        // Get board coordinates from world coordinates
+        const zero = new THREE.Vector3((0.5 * this.squareSize) - (0.5 * this.squareSize * this.n), 0, (0.5 * this.squareSize * this.n) - (0.5 * this.squareSize))
+        pos = pos.clone().sub(zero).sub(this.boardContainer.position)
+        
+        let x = Math.floor(pos.x / this.squareSize)
+        let y = Math.floor(pos.y / this.verticalIncrement)
+        let numGaps = Math.floor(-pos.z / this.horizontalIncrement)
+        let z = Math.floor((-pos.z - (numGaps * this.horizontalIncrement)) / this.squareSize)
+        let w = numGaps
+        
+//        pos.sub(this.boardContainer.position)
+        
+        return new THREE.Vector4(x, y, z, w)
+    },
+	
+	showPossibleMoves: function(locations, piece, materialScheme={}, canRayCast){
+		materialScheme = Object.assign({
+			0: {
+				moveMaterial: Models.materials.green,
+				attackMaterial: Models.materials.red
+			},
+			1: {
+				moveMaterial: Models.materials.green,
+				attackMaterial: Models.materials.red
+			},
+		}, materialScheme)
+		
+        this.hidePossibleMoves();
+        
+        locations.forEach(pos => {
+			
+			coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
+			let material;
+			let shadowPiece;
+			if(pos.possibleCapture){
+				const attackedPiece = this.gameBoard.pieces[pos.x][pos.y][pos.z][pos.w]
+				material = materialScheme[piece.team].attackMaterial;
+				shadowPiece = Models.createMesh(attackedPiece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)
+				if(attackedPiece.team === 0){
+					rotateObject(shadowPiece, 0, 180, 0)
+				}
+			} else {
+				let material = materialScheme[piece.team].moveMaterial;
+				shadowPiece = Models.createMesh(piece.type, material, coordinates.x, coordinates.y, coordinates.z, 1, canRayCast)
+			}
+				
+			this.possibleMovesContainer.add(shadowPiece)
+            
+            			
+        });
+        
+    },
+    
+    showPossibleMoves2: function(x, y, z, w, materialScheme){
+      
+        const locations = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
+        
+        this.showPossibleMoves(locations, piece, materialScheme)
+        
+    },
+    
+    hidePossibleMoves: function(objectName='possibleMoves'){
+        while(this.possibleMovesContainer.children.length){
+			const mesh = this.possibleMovesContainer.children[0]
+			Selector.unhighlight(mesh)
+            this.possibleMovesContainer.remove(mesh);
+        }
+    },
+	
+	moveMesh: function(piece, x1, y1, z1, w1){
+		const currentMeshCoords = piece.mesh.position
+        const newMeshCoords = this.boardCoordinates(x1, y1, z1, w1)
+        
+        const frames = 12
+        const interpolatedCoords = Animation.linearInterpolate(currentMeshCoords, newMeshCoords, frames)
+        Animation.addToQueue(animationQueue, piece.mesh, interpolatedCoords)
+        piece.mesh.canRayCast = false // temporarily disable piece's ability to be found in rayCast
+        
+        animationQueue[animationQueue.length - 1].onAnimate = function(){
+            piece.mesh.canRayCast = true // re-enable piece's ability to be found in rayCast
+            if(piece.type === 'pawn' && this.isOnPromotionSquare(x1, y1, z1, w1)){
+				// Normal capture logic and animation is still executed,
+				// but here we remove the pawn's sprite and spawn in a queen
+				// Notice that we do not use GameObject.removePiece() method because
+				// it will also remove its game object, which is logic that should 
+				// be separate from graphics
+				this.graphics.removeMesh(piece)
+				this.graphics.addToPiecesContainer(piece.descendant.mesh); // Only add mesh to scene when animation is finished
+//				this.graphics.piecesContainer.add(queen.mesh); 
+            }
+        }.bind(this.gameBoard)
+	},
+	
+	createMesh: function(typeString, team, x, y, z, w, addToContainer=true){ 
+		
+		// Create mesh (without game object), add it to the scene, and return the mesh
+		const worldPos = this.boardCoordinates(x, y, z, w)
+		const material = team === 0 ? Models.materials.white : Models.materials.black
+		const mesh = Models.createMesh(typeString, material, worldPos.x, worldPos.y, worldPos.z)
+		if(team === 0) rotateObject(mesh, 0, 180, 0)
+		if(addToContainer){
+			this.piecesContainer.add(mesh)
+		}
+		
+		return mesh
+		
+	},
+	
+	setMesh: function(piece, x, y, z, w, addToContainer=true){
+//		const worldPos = this.boardCoordinates(x, y, z, w)
+//		const mesh = this.createMesh(piece.type, piece.team, worldPos.x, worldPos.y, worldPos.z, worldPos.w);
+		const mesh = this.createMesh(piece.type, piece.team, x, y, z, w, addToContainer);
+        piece.setMesh(mesh);
+	},
+	
+	removeMesh: function(piece){
+		this.piecesContainer.remove(piece.mesh);
+	},
+	
+	respawnMesh: function(piece){
+		this.piecesContainer.add(piece.mesh);
+	},
+	
+	setSelectability: function(piece, canMove) {
+		piece.mesh.selectable = canMove;
+	},
+	
+	addToPiecesContainer: function(mesh) {
+		this.piecesContainer.add(mesh); 
+	}
+	
+}
+
+
+function GameBoard(n=4, Graphics=BoardGraphics){
+	
+    this.n = n;
+    this.position = new THREE.Vector3(0, 0, 0);
+    
+	this.graphics = new Graphics(this);
+    this.pieces = this.initPieces();
+    
+    let halfN = Math.floor((this.n - 1) / 2)
+    this.test(halfN, halfN, halfN+2, halfN)
+	
+	this.setSelectability = function(team, canMove){
+		// Enable/Disable piece rayCasting (block user interaction)
+		this.applyToTeam(function(piece){
+			this.graphics.setSelectability(piece, canMove);
+//			piece.mesh.selectable = canMove
+		}.bind(this), team)
+	};
+}
+
+function BoardGraphics(gameBoard){
+//	EmptyBoardGraphics.call(this, gameBoard);
+	this.gameBoard = gameBoard;
+	this.n = gameBoard.n;
+	this.squareSize = 50
+	this.boardSize = this.squareSize * this.n;
+    this.verticalIncrement = 100 * 1.75
+    this.horizontalGap = this.squareSize * 1.6
+    this.horizontalIncrement = this.n * this.squareSize + this.horizontalGap
+    this.globalLength = this.horizontalIncrement * (this.n - 1)
+    this.globalHeight = this.verticalIncrement * this.n
+	this.boardHeight = 5;
+    this.EPSILON = 1
+	
+	this.mesh = new THREE.Object3D();
+	this.boardContainer = new THREE.Object3D();
+    this.piecesContainer = new THREE.Object3D();
+    this.possibleMovesContainer = new THREE.Object3D();
+	this.boardContainer.name = 'boardContainer';
+	this.piecesContainer.name = 'piecesContaier';
+	this.possibleMovesContainer.name = 'possibleMovesContainer';
+	this.mesh.add(this.boardContainer)
+	this.mesh.add(this.piecesContainer)
+	this.mesh.add(this.possibleMovesContainer)
+	scene.add(this.mesh);
+	
+	let bottom = 0;
+	let left = 0;
+	for (let w = 0; w < this.n; w++){
+		for(let i = 0; i < this.n; i++){
+			let checker = BoardGraphics.checkerboard3d(this.n, this.n * this.squareSize, z=i, w, opacity=0.4, this.boardHeight) // Construct 2D checkerboard planes
+			checker.position.set(0, bottom + i*this.verticalIncrement, left - w*this.horizontalIncrement)
+			rotateObject(checker, -90, 0, 0)
+			this.boardContainer.add(checker)
+		}
+	}
+	
+}
+
 BoardGraphics.checkerboard = function(segments=8, boardSize=100, z=0, w=0, opacity=0.5){
     
     let geometry = new THREE.PlaneGeometry(boardSize, boardSize, segments, segments)
@@ -620,16 +676,7 @@ BoardGraphics.checkerboard3d = function(segments=8, boardSize=100, z=0, w=0, opa
 	
 }
 
-function removeEntity(objectName, scene=scene) {
-    var selectedObject = scene.getObjectByName(objectName.name);
-    scene.remove(selectedObject);
+function EmptyBoardGraphics(gameBoard) {
+
 }
 
-function ds(vec){
-	// Debug Sphere
-	var geometry = new THREE.SphereGeometry(5, 32, 32 );
-	var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-	var sphere = new THREE.Mesh( geometry, material );
-	sphere.position.set(vec.x, vec.y, vec.z);
-	scene.add(sphere);
-}

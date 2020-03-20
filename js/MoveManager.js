@@ -1,11 +1,12 @@
 'use strict';
 
-function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
+function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	this.gameBoard = gameBoard;
 	this.clientTeam = 0;
 	this.turn = 0; // team number. White: 0, Black: 1
-	this.players = [new PlayerData(0, clockTime), new PlayerData(1, clockTime)];
+	this.players = [new PlayerData(0, 300), new PlayerData(1, 300)];
 	this.moveHistory = new DMoveList(gameBoard);
+	this.main = main;
 	
 	
 	
@@ -23,18 +24,25 @@ function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 		this.moveHistory.add(x0, y0, z0, w0, x1, y1, z1, w1, capturedPiece, metaData);
 		this.turn = 1 - this.turn;
 		this.setMode(this.mode); // updates team abilities
+		if(main) backendMoveManager.move(x0, y0, z0, w0, x1, y1, z1, w1);
 	}
 	
 	this.undo = function(){
 		this.moveHistory.undo();
-		this.turn = 1 - this.turn;
+		if (this.mode != MoveManager.ONLINE_MULTIPLAYER) {
+			this.turn = 1 - this.turn;
+		}
 		this.setMode(this.mode);
+		if(main) backendMoveManager.undo();
 	}
 	
 	this.redo = function(){
 		this.moveHistory.redo();
-		this.turn = 1 - this.turn;
+		if (this.mode != MoveManager.ONLINE_MULTIPLAYER) {
+			this.turn = 1 - this.turn;
+		}
 		this.setMode(this.mode);
+		if(main) backendMoveManager.redo();
 	}
 	
 	this.canMove = function(team){
@@ -43,6 +51,7 @@ function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 		} else {
 			return team == this.turn;
 		}
+		if(main) backendMoveManager.canMove(team);
 	}
 	
 	this.setMode = function(mode){
@@ -57,6 +66,7 @@ function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 			this.gameBoard.setSelectability(this.clientTeam, this.canMove(this.clientTeam));
 			this.gameBoard.setSelectability(1 - this.clientTeam, false);
 		}
+		if(main) backendMoveManager.setMode(mode);
 	}
 	
 	this.setMode(mode)
@@ -68,10 +78,37 @@ function MoveManager(gameBoard, clientTeam, mode, clockTime=300){
 	
 	this.update = function(){
 		this.players[this.turn].clockTime -= step;
+		
+		if(main) backendMoveManager.update();
+	}
+	
+	this.package = function() {
+		// function mainly for server to send state of game to clients
+		const x = this.gameBoard.pieces;
+		const pieces = x.map(y => 
+			y.map(z => 
+				z.map(w => 
+					w.map(piece => piece.package())
+				)
+			)
+		)
+		
+		let data = {
+			turn: this.turn,
+			moveHistory: this.moveHistory,
+			players: this.players,
+			pieces: pieces
+		}
+		return data
 	}
 	
 	
 }
+
+function PertinentData() {
+	
+}
+
 
 MoveManager.SANDBOX = 0;
 MoveManager.LOCAL_MULTIPLAYER = 1;

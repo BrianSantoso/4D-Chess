@@ -24,6 +24,8 @@
 		<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 		<script src="https://unpkg.com/@material-ui/core@4.9.5/umd/material-ui.development.js"></script>
 		
+		<script src="js/lodash.js"></script>
+		
 		<link rel="stylesheet" type="text/css" href="css/style.css">
         
         <script type="text/babel">
@@ -32,6 +34,8 @@
 			/**
 			 * TODO BEFORE PRODUCTION BUILD: 
 				- Replace all CDNs
+				BUGS:
+				- work on Piece.update -- undoing a pawn's hasMoved/justMovedTwoSpaces does not undo the state.
 			 */
 //            try {
 //				const socket = io()
@@ -53,6 +57,8 @@
             let camera;
             let renderer;
             let controls;
+			let backendBoard;
+			let backendMoveManager;
             let gameBoard;
 			let moveManager;
             let pointer;
@@ -85,8 +91,15 @@
 			}
 
 			function initGameBoard() {
-				gameBoard = new GameBoard();
-				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX);
+				
+				backendBoard = new GameBoard(4, EmptyBoardGraphics);
+				backendMoveManager = new MoveManager(backendBoard, 0, MoveManager.SANDBOX, false);
+				gameBoard = new GameBoard(4, BoardGraphics);
+				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX, true);
+				
+				
+				
+				
 				camera.position.set(600, 510, gameBoard.graphics.getCenter().z)
 				const target = gameBoard.graphics.getCenter();
                 controls.target.set(target.x, target.y, target.z);
@@ -94,8 +107,6 @@
 				let coolPos = {x: 555.8170713338144, y: 506.7444028015284 + 110, z: -420}
 				let coolTar = {x: 0, y: 262.5 + 110, z: -420}
 				camera.position.set(coolPos.x, coolPos.y, coolPos.z);
-				
-				
 				controls.target.set(coolTar.x, coolTar.y, coolTar.z);
 				
 				debugSphere = DEBUG(controls.target, 0, 0);
@@ -174,7 +185,7 @@
 
                 controls.dynamicDampingFactor = 0.2; // set dampening factor
                 controls.minDistance = 100
-                controls.maxDistance = 2250
+                controls.maxDistance = 1400
             }
 
             let last = 0;
@@ -226,12 +237,18 @@
 			
 			function DEBUG(pos, color=0xff0000, opacity=0.5) {
 				const geometry = new THREE.SphereGeometry( 5, 32, 32 );
-				const material = new THREE.MeshBasicMaterial( {color: color, transparent:true, opacity: opacity} );
-				const DEBUG_SPHERE = new THREE.Mesh( geometry, material );
+				const material = new THREE.MeshBasicMaterial({color: color, transparent:true, opacity: opacity});
+				const DEBUG_SPHERE = new THREE.Mesh(geometry, material);
 				DEBUG_SPHERE.position.set(pos.x, pos.y, pos.z);
 				scene.add(DEBUG_SPHERE);
 				return DEBUG_SPHERE;
 			}
+
+			function removeEntity(objectName, scene=scene) {
+				var selectedObject = scene.getObjectByName(objectName.name);
+				scene.remove(selectedObject);
+			}
+
 			
         </script>
 		

@@ -81,7 +81,7 @@ ClientState.MENU = new ClientState(
 				const direction = dragVector.x / Math.abs(dragVector.x);
 				idleMenuRotateVel = 0.5 * direction;
 			}
-			if (!pointer.dragging) {
+			if (dragVector.x == 0 && dragVector.y == 0) {
 				rotateCameraAbout(camera, controls.target, idleMenuRotateVel * step * -1)
 			}
 
