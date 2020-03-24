@@ -127,8 +127,11 @@ body {
 }
 
 #moveStatus {
+/*
 	min-width: 10vw;
 	width: auto;
+*/
+	width: 14vw;
 	margin: 0 1vw;
 	font-size: 1.4em;
 }
