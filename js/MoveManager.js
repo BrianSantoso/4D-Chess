@@ -51,6 +51,7 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	this.updateUI = function() {
 		uiProxy.setState({
 			mostRecentMove: this.currTurn() == this.size(),
+			turn: this.currTurn(),
 			whoseTurn: this.whoseTurn(),
 			totalMoves: this.size()
 		});
