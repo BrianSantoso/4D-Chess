@@ -53,7 +53,8 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 			mostRecentMove: this.currTurn() == this.size(),
 			turn: this.currTurn(),
 			whoseTurn: this.whoseTurn(),
-			totalMoves: this.size()
+			totalMoves: this.size(),
+			gameMode: this.mode
 		});
 	}
 	
