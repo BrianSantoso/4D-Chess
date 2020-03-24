@@ -8,9 +8,6 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	this.moveHistory = new DMoveList(gameBoard);
 	this.main = main;
 	
-	
-	
-	
 	this.move = function(x0, y0, z0, w0, x1, y1, z1, w1){
 		const movingPiece = this.gameBoard.pieces[x0][y0][z0][w0];
 		if(!this.canMove(movingPiece.team)){
@@ -25,6 +22,8 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 		this.turn = 1 - this.turn;
 		this.setMode(this.mode); // updates team abilities
 		if(main) backendMoveManager.move(x0, y0, z0, w0, x1, y1, z1, w1);
+		
+		this.updateUI();
 	}
 	
 	this.undo = function(){
@@ -34,6 +33,8 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 		}
 		this.setMode(this.mode);
 		if(main) backendMoveManager.undo();
+		
+		this.updateUI();
 	}
 	
 	this.redo = function(){
@@ -43,6 +44,24 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 		}
 		this.setMode(this.mode);
 		if(main) backendMoveManager.redo();
+		
+		this.updateUI();
+	}
+	
+	this.updateUI = function() {
+		uiProxy.setState({
+			mostRecentMove: this.currTurn() == this.size(),
+			turn: this.currTurn(),
+			totalMoves: this.size()
+		});
+	}
+	
+	this.currTurn = function() {
+		return this.moveHistory.currTurn();
+	}
+	
+	this.size = function() {
+		return this.moveHistory.size();
 	}
 	
 	this.canMove = function(team){
@@ -91,11 +110,11 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 					w.map(piece => piece.package())
 				)
 			)
-		)
+		);
 		
 		let data = {
 			turn: this.turn,
-			moveHistory: this.moveHistory,
+			moveHistory: this.moveHistory.package(),
 			players: this.players,
 			pieces: pieces
 		}
@@ -105,17 +124,14 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	
 }
 
-function PertinentData() {
-	
-}
-
 
 MoveManager.SANDBOX = 0;
 MoveManager.LOCAL_MULTIPLAYER = 1;
 MoveManager.ONLINE_MULTIPLAYER = 2;
 
 function DMoveList(gameBoard, curr){
-	this.curr = curr || new MoveHistoryNode();
+	this.root = new MoveHistoryNode()
+	this.curr = curr || this.root;
 	this.gameBoard = gameBoard;
 }
 
@@ -152,6 +168,42 @@ DMoveList.prototype = {
 			return true;
 		}
 		return false;
+	},
+	
+	size: function() {
+		let size = -1;
+		let curr = this.root;
+		while (curr != null) {
+			curr = curr.next;
+			size++;
+		}
+		return size;
+	},
+	
+	indexOf: function(item) {
+		let index = 0;
+		let curr = this.root;
+		while (curr != null) {
+			if (curr == item) {
+				return index;
+			}
+			curr = curr.next;
+			index++;
+		}
+		return -1;
+	},
+	
+	currTurn: function() {
+		return this.indexOf(this.curr);
+	},
+	
+	package: function() {
+		const current = this.root;
+		const newDList = new DMoveList(null);
+		while(current) {
+			newDList.add(current.package());
+		}
+		return newDList;
 	}
 }
 
@@ -159,6 +211,10 @@ function MoveHistoryNode(move){
 	this.move = move || null;
 	this.next = null;
 	this.prev = null;
+	
+	this.package = function() {
+		return {move: this.move ? this.move.package() : null}
+	}
 }
 
 function Move(x0, y0, z0, w0, x1, y1, z1, w1, capturedPiece, metaData){
@@ -173,4 +229,28 @@ function Move(x0, y0, z0, w0, x1, y1, z1, w1, capturedPiece, metaData){
 	this.capturedPiece = capturedPiece;
 	this.metaData = metaData || {promotion: false};
 	
+	this.package = function() {
+		return {
+			x0: this.x0,
+			y0: this.y0,
+			z0: this.z0,
+			w0: this.w0,
+			x1: this.x1,
+			y1: this.y1,
+			z1: this.z1,
+			w1: this.w1,
+			capturedPiece: this.capturedPiece.package(),
+			metaData: (function(){
+				let ret = {}
+				for(var key in this.metaData) {
+					if(key instanceof Piece) {
+						ret[key] = this.metaData[key].package();
+					} else {
+						ret[key] = this.metaData[key];
+					}
+				}
+				return ret;
+			})()
+		}
+	}
 }

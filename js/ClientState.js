@@ -94,3 +94,9 @@ ClientState.MENU = new ClientState(
 	function update() {},
 	render
 );
+
+ClientState.SERVER = new ClientState(
+	function keyInputs() {},
+	function update() {},
+	function render() {}
+);

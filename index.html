@@ -53,6 +53,7 @@
             };
 
             // declare global variables
+			const SERVER = false;
             let scene;
             let camera;
             let renderer;
@@ -64,7 +65,9 @@
             let pointer;
             let animationQueue = []
 			let debugSphere;
-			let stateManager = new ClientStateManager(ClientState.MENU);
+			let stateManager = new ClientStateManager(SERVER ? ClientState.SERVER : ClientState.MENU);
+			let uiProxy;
+			
 
 			function main() {
 				const modelLoadProm = Models.loadModels();
@@ -84,6 +87,8 @@
             }
 
 			function initReact() {
+//				uiProxy = SERVER ? new EmptyUI() : new UI();
+				uiProxy = new EmptyUI(); // will be changed when component mounts
 				ReactDOM.render(
 				  <App />,
 				  document.getElementById('gui')
@@ -94,11 +99,13 @@
 				
 				backendBoard = new GameBoard(4, EmptyBoardGraphics);
 				backendMoveManager = new MoveManager(backendBoard, 0, MoveManager.SANDBOX, false);
-				gameBoard = new GameBoard(4, BoardGraphics);
+				gameBoard = new GameBoard(4, SERVER ? EmptyBoardGraphics : BoardGraphics);
 				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX, true);
 				
 				
-				
+				if (SERVER) {
+					return;
+				}
 				
 				camera.position.set(600, 510, gameBoard.graphics.getCenter().z)
 				const target = gameBoard.graphics.getCenter();
@@ -117,6 +124,10 @@
 			}
 
             function initTHREE(){
+				
+				if (SERVER) {
+					return;
+				}
 
                 // Code from three.js scene creation example.
                 // https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
@@ -173,6 +184,10 @@
             // https://threejs.org/examples/misc_controls_trackball.html
             function initControls(){
 
+				if (SERVER) {
+					return;
+				}
+				
                 controls = new THREE.TrackballControls( camera, renderer.domElement );
 
                 controls.rotateSpeed = 1.8; // set rotation/zoom/pan speeds
@@ -249,6 +264,88 @@
 				scene.remove(selectedObject);
 			}
 
+			function eq(a, b) {
+				return _.reduce(a, function(result, value, key) {
+					return _.isEqual(value, b[key]) ?
+						result : result.concat(key);
+				}, []);
+			}
+			/*
+			 * Compare two objects by reducing an array of keys in obj1, having the
+			 * keys in obj2 as the intial value of the result. Key points:
+			 *
+			 * - All keys of obj2 are initially in the result.
+			 *
+			 * - If the loop finds a key (from obj1, remember) not in obj2, it adds
+			 *   it to the result.
+			 *
+			 * - If the loop finds a key that are both in obj1 and obj2, it compares
+			 *   the value. If it's the same value, the key is removed from the result.
+			 */
+			function getObjectDiff(obj1, obj2) {
+				const diff = Object.keys(obj1).reduce((result, key) => {
+					if (!obj2.hasOwnProperty(key)) {
+						result.push(key);
+					} else if (_.isEqual(obj1[key], obj2[key])) {
+						const resultKeyIndex = result.indexOf(key);
+						result.splice(resultKeyIndex, 1);
+					}
+					return result;
+				}, Object.keys(obj2));
+
+				return diff;
+			}
+
+			var compare = function (a, b) {
+
+			  var result = {
+				different: [],
+				missing_from_first: [],
+				missing_from_second: []
+			  };
+
+			  _.reduce(a, function (result, value, key) {
+				if (b.hasOwnProperty(key)) {
+				  if (_.isEqual(value, b[key])) {
+					return result;
+				  } else {
+					if (typeof (a[key]) != typeof ({}) || typeof (b[key]) != typeof ({})) {
+					  //dead end.
+					  result.different.push(key);
+					  return result;
+					} else {
+					  var deeper = compare(a[key], b[key]);
+					  result.different = result.different.concat(_.map(deeper.different, (sub_path) => {
+						return key + "." + sub_path;
+					  }));
+
+					  result.missing_from_second = result.missing_from_second.concat(_.map(deeper.missing_from_second, (sub_path) => {
+						return key + "." + sub_path;
+					  }));
+
+					  result.missing_from_first = result.missing_from_first.concat(_.map(deeper.missing_from_first, (sub_path) => {
+						return key + "." + sub_path;
+					  }));
+					  return result;
+					}
+				  }
+				} else {
+				  result.missing_from_second.push(key);
+				  return result;
+				}
+			  }, result);
+
+			  _.reduce(b, function (result, value, key) {
+				if (a.hasOwnProperty(key)) {
+				  return result;
+				} else {
+				  result.missing_from_first.push(key);
+				  return result;
+				}
+			  }, result);
+
+			  return result;
+			}
 			
         </script>
 		
@@ -263,6 +360,20 @@
 		</div>
 -->
 		<script type="text/babel">
+
+			function EmptyUI() {
+				this.setState = function(state) {
+					
+				}
+			}
+
+			function UI(reactComponent) {
+				this._ui = reactComponent;
+				this.setState = function(state) {
+//					console.log(state)
+					this._ui.setState(state);
+				}
+			}
 
 			class App extends React.Component {
 				
@@ -309,10 +420,34 @@
 				game() {
 					return (
 						<div className="overlay">
-							<RedoButton/>
-							<UndoButton/>
+							<div id="toolbar">
+								<UndoButton/>
+								<MoveStatus ref={(ourComponent) => {uiProxy = new UI(ourComponent)}}></MoveStatus>
+								<RedoButton/>
+							</div>
 						</div>
 					);
+				}
+			}
+
+			class MoveStatus extends React.Component {
+				constructor(props) {
+					super(props)
+					this.state = {
+						mostRecentMove: true,
+						turn: 0,
+						totalMoves: 0
+					}
+				}
+				
+				render() {
+					return (
+						<div id="moveStatus" className="text toolbarItem">
+							{this.state.mostRecentMove ? 
+								(this.state.turn === 0 ? "White to Move" : "Black to Move") :
+								("Move " + this.state.turn + "/" + this.state.totalMoves)}
+						</div>
+					)
 				}
 			}
 
@@ -344,7 +479,7 @@
 
 				render() {
 					return (
-						<a onClick={this.handleClick} className="moveHistoryButton" id={this.id}>
+						<a onClick={this.handleClick} className="moveHistoryButton toolbarItem" id={this.id}>
 							<img src={this.imgSrc}/>
 						</a>
 					);

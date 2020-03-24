@@ -30,8 +30,6 @@ GameBoard.prototype = {
         //
         // Graphics
         //
-        
-        
 		return pieces;
     },
     
@@ -42,7 +40,7 @@ GameBoard.prototype = {
 		
 		const targetPiece = this.pieces[x1][y1][z1][w1];
 		if(targetPiece.type){
-			Object.assign(metaData, {captured: true, capturedPiece: targetPiece});
+			Object.assign(metaData, {capturedPiece: targetPiece});
 		}
         const piece = this.pieces[x0][y0][z0][w0];
 		
@@ -81,14 +79,14 @@ GameBoard.prototype = {
 		const originalPiece = move.metaData.promotion ? move.metaData.oldPiece : this.pieces[move.x1][move.y1][move.z1][move.w1];
 		this.pieces[move.x0][move.y0][move.z0][move.w0] = originalPiece;
 		
-		const capturedPiece = move.metaData.captured ? move.metaData.capturedPiece : new Piece();
+		const capturedPiece = move.metaData.capturedPiece || new Piece();
 		if(move.metaData.promotion){
 			this.graphics.respawnMesh(originalPiece);
 			this.removePiece(move.x1, move.y1, move.z1, move.w1); // TODO: THIS IS SCARY. If bugs occur separate the graphics component of removePiece into a new method. The current implementaiton might cause errors...
 		}
 		this.pieces[move.x1][move.y1][move.z1][move.w1] = capturedPiece;
 		
-		if (move.metaData.captured) {
+		if (move.metaData.capturedPiece) {
 			this.graphics.respawnMesh(capturedPiece); 
 		}
 		if (move.metaData.justMoved) {

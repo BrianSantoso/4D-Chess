@@ -416,6 +416,9 @@ MoveSelector.prototype = Object.create(Selector.prototype)
 
 function initPointer(){
     
+	if (SERVER) {
+		return;
+	}
     pointer = new Pointer(scene, camera, gameBoard, moveManager)
     
 }
