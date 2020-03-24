@@ -6,13 +6,14 @@
 		<!--	Disable Zoom on mobile	-->
 		<meta name="viewport" content="width=device-width, user-scalable=no">
         
-<!--        <script src="/socket.io/socket.io.js"></script>-->
+		<script src="/socket.io/socket.io.js"></script>
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Mono|Source+Code+Pro|Ubuntu+Mono&display=swap" rel="stylesheet">
         <script src="js/three.js"></script>
         <script src="js/TrackballControls.js"></script>
         <script src="js/Detector.js"></script>
         <script src="js/Models.js"></script>
         <script src="js/GameBoard.js"></script>
+		<script src="js/Mode.js"></script>
 		<script src="js/MoveManager.js"></script>
         <script src="js/Piece.js"></script>
         <script src="js/Pointer.js"></script>
@@ -54,6 +55,7 @@
 
             // declare global variables
 			const SERVER = false;
+			let socket;
             let scene;
             let camera;
             let renderer;
@@ -77,6 +79,7 @@
 			}
 
             function init(){
+				initSocketIO();
                 initTHREE();
                 initControls();
 				initGameBoard();
@@ -85,6 +88,18 @@
                 // begin the simulation loop
                 requestAnimationFrame(frame);
             }
+
+			function initSocketIO() {
+				try {
+					socket = io();
+				} catch(e) {
+					console.error('socket.io failed to initialize')
+					socket = {
+						emit: function(){}
+					}
+				}
+				
+			}
 
 			function initReact() {
 //				uiProxy = SERVER ? new EmptyUI() : new UI();
@@ -97,10 +112,10 @@
 
 			function initGameBoard() {
 				
-				backendBoard = new GameBoard(4, EmptyBoardGraphics);
-				backendMoveManager = new MoveManager(backendBoard, 0, MoveManager.SANDBOX, false);
+//				backendBoard = new GameBoard(4, EmptyBoardGraphics);
+//				backendMoveManager = new MoveManager(backendBoard, 0, Mode.SANDBOX, false);
 				gameBoard = new GameBoard(4, SERVER ? EmptyBoardGraphics : BoardGraphics);
-				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX, true);
+				moveManager = new MoveManager(gameBoard, 0, Mode.ONLINE_MULTIPLAYER, true);
 				
 				
 				if (SERVER) {
@@ -399,6 +414,13 @@
 				}
 				
 				exitMenu() {
+					const whichSide = -2 * moveManager.clientTeam + 1;
+					const cameraDestination = new THREE.Vector3(600 * whichSide, 510, gameBoard.graphics.getCenter().z);
+					const smoothness = 3/300;
+					const squaredEpsilon = 100;
+					const interpolatedCoords = CameraAnimation.smoothLerp(camera.position, cameraDestination, smoothness, squaredEpsilon);
+//					console.log(interpolatedCoords);
+					CameraAnimation.addToQueue(animationQueue, camera, interpolatedCoords)
 					this.swapState(ClientState.GAME_STATE);
 				}
 				
@@ -434,11 +456,12 @@
 				constructor(props) {
 					super(props)
 					this.state = {
-						mostRecentMove: true,
-						turn: 0,
-						whoseTurn: 0,
-						totalMoves: 0,
-						mode: 0
+//						mostRecentMove: true,
+//						turn: 0,
+//						whoseTurn: 0,
+//						totalMoves: 0,
+//						mode: 0
+						text: ""
 					}
 					
 					moveManager.updateUI();
@@ -447,19 +470,14 @@
 				render() {
 					return (
 						<div id="moveStatus" className="text toolbarItem">
-							{this.state.mode == MoveManager.SANDBOX ?
-								this.turnString() :
-								this.state.mostRecentMove ? 
-									(this.state.whoseTurn === 0 ? "White to Move" : "Black to Move") :
-									this.turnString()
-							}
+							{this.state.text}
 						</div>
 					)
 				}
 				
-				turnString() {
-					return ("Move " + this.state.turn + "/" + this.state.totalMoves);
-				}
+//				turnString() {
+//					return ("Move " + this.state.turn + "/" + this.state.totalMoves);
+//				}
 			}
 
 			class RectMenuButton extends React.Component {
