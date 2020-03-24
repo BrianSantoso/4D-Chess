@@ -51,13 +51,17 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	this.updateUI = function() {
 		uiProxy.setState({
 			mostRecentMove: this.currTurn() == this.size(),
-			turn: this.currTurn(),
+			whoseTurn: this.whoseTurn(),
 			totalMoves: this.size()
 		});
 	}
 	
 	this.currTurn = function() {
 		return this.moveHistory.currTurn();
+	}
+	
+	this.whoseTurn = function() {
+		return this.currTurn() % 2;
 	}
 	
 	this.size = function() {

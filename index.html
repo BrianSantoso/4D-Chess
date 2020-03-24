@@ -98,9 +98,9 @@
 			function initGameBoard() {
 				
 				backendBoard = new GameBoard(4, EmptyBoardGraphics);
-				backendMoveManager = new MoveManager(backendBoard, 0, MoveManager.SANDBOX, false);
+				backendMoveManager = new MoveManager(backendBoard, 0, MoveManager.LOCAL_MULTIPLAYER, false);
 				gameBoard = new GameBoard(4, SERVER ? EmptyBoardGraphics : BoardGraphics);
-				moveManager = new MoveManager(gameBoard, 0, MoveManager.SANDBOX, true);
+				moveManager = new MoveManager(gameBoard, 0, MoveManager.LOCAL_MULTIPLAYER, true);
 				
 				
 				if (SERVER) {
@@ -435,7 +435,7 @@
 					super(props)
 					this.state = {
 						mostRecentMove: true,
-						turn: 0,
+						whoseTurn: 0,
 						totalMoves: 0
 					}
 				}
@@ -444,8 +444,8 @@
 					return (
 						<div id="moveStatus" className="text toolbarItem">
 							{this.state.mostRecentMove ? 
-								(this.state.turn === 0 ? "White to Move" : "Black to Move") :
-								("Move " + this.state.turn + "/" + this.state.totalMoves)}
+								(this.state.whoseTurn === 0 ? "White to Move" : "Black to Move") :
+								("Move " + this.state.whoseTurn + "/" + this.state.totalMoves)}
 						</div>
 					)
 				}
