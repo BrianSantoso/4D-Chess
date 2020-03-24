@@ -115,7 +115,7 @@
 //				backendBoard = new GameBoard(4, EmptyBoardGraphics);
 //				backendMoveManager = new MoveManager(backendBoard, 0, Mode.SANDBOX, false);
 				gameBoard = new GameBoard(4, SERVER ? EmptyBoardGraphics : BoardGraphics);
-				moveManager = new MoveManager(gameBoard, 0, Mode.ONLINE_MULTIPLAYER, true);
+				moveManager = new MoveManager(gameBoard, 0, Mode.SANDBOX, true);
 				
 				
 				if (SERVER) {
