@@ -5,9 +5,7 @@
 A multiplayer 4D Chess Web game using Three.js and JavaScript
 
 PLAY ONLINE: https://chess4d.herokuapp.com/
-
-SANDBOX: https://briansantoso.github.io/4D-Chess/
-<a href="http://briansantoso.github.io/4D-Chess">![alt tag](https://raw.githubusercontent.com/BrianSantoso/images/master/4D-Chess/4dchessgif.gif)</a>
+<a href="https://chess4d.herokuapp.com/">![alt tag](https://raw.githubusercontent.com/BrianSantoso/images/master/4D-Chess/4dchessgif.gif)</a>
 # How Do You Play 4D Chess?
 The game of 4D Chess is nicely explained [in this video by Alan Pan](https://www.youtube.com/watch?v=3wFQPSEPgWc)
 
