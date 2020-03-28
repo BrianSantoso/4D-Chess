@@ -13,8 +13,9 @@ body {
 	font-family: 'Source Code Pro', monospace;
 /*	font-family: 'Ubuntu Mono', monospace;*/
 	color: #3f3f3f;
-	font-size: 3.8em;
+/*	font-size: 3.8em;*/
 /*	font-size: 7.6vh;*/
+	font-size: 9.6vh;
 /*	font-weight: 700;*/
 /*    letter-spacing: 4px;*/
 }
@@ -175,6 +176,50 @@ body {
 	font-size: 10.4vh;
 }
 
+#playOptionsMenu {
+	padding-top: 3vh;
+	text-align: center;
+}
+
+.playOptionButton {
+	margin-left: auto;
+    margin-right: auto;
+	margin-top: 5vh;
+/*	margin-bottom: auto;*/
+/*	margin-bottom: 1vh;*/
+	border: none;
+	text-align: center;
+	text-decoration: none;
+	font-size: 5.2vh;
+	
+	min-width: 40vw;
+	width: auto;
+	height: auto;
+	padding: 2vh 4.8vw;
+	
+/*
+	background-color: #f6f6f6;
+	color: #3f3f3f;
+*/
+	background-color: #3f3f3f;
+	color: #f6f6f6;
+}
+
+#matchmakingButton {
+	background-color: #f6f6f6;
+	color: #3f3f3f;
+}
+
+#localMultiplayerButton {
+	background-color: #f6f6f6;
+	color: #3f3f3f;
+}
+
+#sandboxButton {
+	background-color: #f6f6f6;
+	color: #3f3f3f;
+}
+
 #privateRoomButton {
 	margin-left: auto;
     margin-right: auto;
@@ -183,17 +228,7 @@ body {
 	border: none;
 	text-align: center;
 	text-decoration: none;
-/*	font-size: 2.5vw;*/
 	font-size: 5.2vh;
-/*	font-size: 2em;*/
-/*	font-size: 5.2vh;*/
-/*	width: 15em;*/
-/*    height: 2em;*/
-	
-/*
-	width: 38vw;
-	height: 10vh;
-*/
 	
 	width: auto;
 	height: auto;

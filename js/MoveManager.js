@@ -1,64 +1,12 @@
-'use strict';
 
-function MoveManager(gameBoard, clientTeam, mode, main=false) {
+function MoveManager(gameBoard, clientTeam, mode) {
 	this.gameBoard = gameBoard;
 	this.clientTeam = 0;
-//	this.turn = 0; // team number. White: 0, Black: 1
 	this.players = [new PlayerData(0, 300), new PlayerData(1, 300)];
 	this.moveHistory = new DMoveList(gameBoard);
-	this.main = main;
 	
-//	this.move = function(x0, y0, z0, w0, x1, y1, z1, w1){
-//		const movingPiece = this.gameBoard.pieces[x0][y0][z0][w0];
-//		if(!this.canMove(movingPiece.team)){
-//			console.error('It is not that pieces turn!', movingPiece, x0, y0, z0, w0)
-//			return;
-//		}
-//		const capturedPiece = this.gameBoard.pieces[x1][y1][z1][w1];
-//		
-//		const metaData = this.gameBoard.move(x0, y0, z0, w0, x1, y1, z1, w1);
-//		
-//		this.moveHistory.add(x0, y0, z0, w0, x1, y1, z1, w1, capturedPiece, metaData);
-////		this.turn = 1 - this.turn;
-//		this.setMode(this.mode); // updates team abilities
-//		if(main) backendMoveManager.move(x0, y0, z0, w0, x1, y1, z1, w1);
-//		
-//		this.updateUI();
-//	}
-//	
-//	this.undo = function(){
-//		this.moveHistory.undo();
-//		if (this.mode != MoveManager.ONLINE_MULTIPLAYER) {
-////			this.turn = 1 - this.turn;
-//		}
-//		this.setMode(this.mode);
-//		if(main) backendMoveManager.undo();
-//		
-//		this.updateUI();
-//	}
-//	
-//	this.redo = function(){
-//		this.moveHistory.redo();
-//		if (this.mode != MoveManager.ONLINE_MULTIPLAYER) {
-////			this.turn = 1 - this.turn;
-//		}
-//		this.setMode(this.mode);
-//		if(main) backendMoveManager.redo();
-//		
-//		this.updateUI();
-//	}
-//	
-//	this.canMove = function(team){
-//		if(this.mode === MoveManager.SANDBOX){
-//			return true;
-//		} else {
-//			return team == this.whoseTurn();
-//		}
-//		if(main) backendMoveManager.canMove(team);
-//	}
-	
-	this.move = function(x0, y0, z0, w0, x1, y1, z1, w1) {
-		this.mode.move.call(this, x0, y0, z0, w0, x1, y1, z1, w1);
+	this.move = function(x0, y0, z0, w0, x1, y1, z1, w1, receiving=false) {
+		this.mode.move.call(this, x0, y0, z0, w0, x1, y1, z1, w1, receiving);
 	}
 	
 	this.undo = function() {
@@ -82,12 +30,7 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	}
 	
 	this.updateUI = function() {
-		uiProxy.setState({
-//			mostRecentMove: this.currTurn() == this.size(),
-//			turn: this.currTurn(),
-//			whoseTurn: this.whoseTurn(),
-//			totalMoves: this.size(),
-//			gameMode: this.mode
+		toolbarProxy.setState({
 			text: this.moveStatus()
 		});
 	}
@@ -121,21 +64,6 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 		this.gameBoard.setSelectability(team, canSelect);
 	}
 	
-//	this.setMode = function(mode){
-//		this.mode = mode;
-//		if (this.mode === MoveManager.SANDBOX) {
-//			this.gameBoard.setSelectability(0, true);
-//			this.gameBoard.setSelectability(1, true);
-//		} else if (this.mode === MoveManager.LOCAL_MULTIPLAYER) {
-//			this.gameBoard.setSelectability(0, this.canMove(0));
-//			this.gameBoard.setSelectability(1, this.canMove(1));
-//		} else if (this.mode === MoveManager.ONLINE_MULTIPLAYER) {
-//			this.gameBoard.setSelectability(this.clientTeam, this.canMove(this.clientTeam));
-//			this.gameBoard.setSelectability(1 - this.clientTeam, false);
-//		}
-//		if(main) backendMoveManager.setMode(mode);
-//	}
-	
 	this.setMode = function(mode) {
 		this.mode = mode;
 		this.mode.updateSelectability.call(this);
@@ -155,44 +83,66 @@ function MoveManager(gameBoard, clientTeam, mode, main=false) {
 	}
 	
 	this.package = function() {
-		// function mainly for server to send state of game to clients
-		const x = this.gameBoard.pieces;
-		const pieces = x.map(y => 
-			y.map(z => 
-				z.map(w => 
-					w.map(piece => piece.package())
-				)
-			)
-		);
-		
+		/*
+		 * Serialize data so server can send game state to clients
+		 */
 		let data = {
 			moveHistory: this.moveHistory.package(),
 			players: this.players,
-			pieces: pieces
+			pieces: this.gameBoard.package()
 		}
 		return data
 	}
 	
+	this.loadFrom = function(json) {
+		Object.assign(this.players, json.players);
+//		let newMoveHistory = Move.convertFromJson(json.moveHistory)
+		this.moveHistory = DMoveList.fromList(json.moveHistory, this.gameBoard);
+		this.gameBoard.loadPieces(json.pieces);
+		
+		pointer = new Pointer(scene, camera, this.gameBoard, this)
+		console.log(pointer)
+	}
 	
+	this.loadFromPlayerAssignment = function(playerAssignment) {
+		this.clientTeam = playerAssignment.clientTeam;
+		if (!this.ready) {
+			this.ready = playerAssignment.ready;
+		}
+		if (playerAssignment.gameData) {
+			this.loadFrom(playerAssignment.gameData);
+		}
+		this.updateUI();
+		this.updateSelectability();
+		uiProxy.exitMenu();
+	}
 }
 
-
-//MoveManager.SANDBOX = 0;
-//MoveManager.LOCAL_MULTIPLAYER = 1;
-//MoveManager.ONLINE_MULTIPLAYER = 2;
-
 function DMoveList(gameBoard, curr){
-	this.root = new MoveHistoryNode()
+	this.root = new MoveHistoryNode();
 	this.curr = curr || this.root;
 	this.gameBoard = gameBoard;
 }
 
 DMoveList.prototype = {
-	add: function(x0, y0, z0, w0, x1, y1, z1, w1, metaData){
-		const newMoveHistoryNode = new MoveHistoryNode(new Move(x0, y0, z0, w0, x1, y1, z1, w1, metaData));
-		newMoveHistoryNode.prev = this.curr;
-		this.curr.next = newMoveHistoryNode;
-		this.curr = newMoveHistoryNode;
+	add: function(x0, y0, z0, w0, x1, y1, z1, w1, metaData, appendToEnd=false){
+		return this.addMoveObj(new Move(x0, y0, z0, w0, x1, y1, z1, w1, metaData));
+	},
+	
+	addMoveObj: function(move, appendToEnd=false) {
+		const newMoveHistoryNode = new MoveHistoryNode(move);
+		if (appendToEnd) {
+			let end = this.curr;
+			while(end.next != null) {
+				end = end.next;
+			}
+			newMoveHistoryNode.prev = end;
+			end.next = newMoveHistoryNode;
+		} else {
+			newMoveHistoryNode.prev = this.curr;
+			this.curr.next = newMoveHistoryNode;
+			this.curr = newMoveHistoryNode;
+		}
 		return newMoveHistoryNode;
 	},
 	
@@ -249,14 +199,27 @@ DMoveList.prototype = {
 		return this.indexOf(this.curr);
 	},
 	
-	package: function() {
-		const current = this.root;
-		const newDList = new DMoveList(null);
-		while(current) {
-			newDList.add(current.package());
+	toList: function() {
+		let list = []
+		let curr = this.root;
+		while (curr != null) {
+			list.push(curr.move)
+			curr = curr.next;
 		}
-		return newDList;
+		return list;
+	},
+	
+	package: function() {
+		return this.toList();
 	}
+}
+
+DMoveList.fromList = function(list, gameBoard) {
+	let newDMoveList = new DMoveList(gameBoard);
+	for (let i = 1; i < list.length; i++) {
+		newDMoveList.addMoveObj(list[i])
+	}
+	return newDMoveList;
 }
 
 function MoveHistoryNode(move){
@@ -278,7 +241,7 @@ function Move(x0, y0, z0, w0, x1, y1, z1, w1, metaData){
 	this.y1 = y1;
 	this.z1 = z1;
 	this.w1 = w1;
-//	this.capturedPiece = capturedPiece;
+	
 	this.metaData = metaData || {promotion: false};
 	
 	this.package = function() {

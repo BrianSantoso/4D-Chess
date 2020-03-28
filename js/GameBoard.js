@@ -81,13 +81,13 @@ GameBoard.prototype = {
 		
 		const capturedPiece = move.metaData.capturedPiece || new Piece();
 		if(move.metaData.promotion){
-			this.graphics.respawnMesh(originalPiece);
+			this.graphics.respawnMesh(originalPiece, move.x1, move.y1, move.z1, move.w1);
 			this.removePiece(move.x1, move.y1, move.z1, move.w1); // TODO: THIS IS SCARY. If bugs occur separate the graphics component of removePiece into a new method. The current implementaiton might cause errors...
 		}
 		this.pieces[move.x1][move.y1][move.z1][move.w1] = capturedPiece;
 		
 		if (move.metaData.capturedPiece) {
-			this.graphics.respawnMesh(capturedPiece); 
+			this.graphics.respawnMesh(capturedPiece, move.x1, move.y1, move.z1, move.w1); 
 		}
 		if (move.metaData.justMoved) {
 			originalPiece.hasMoved = false;
@@ -149,6 +149,41 @@ GameBoard.prototype = {
     inBounds: function(x, y, z, w) {
         return x >= 0 && x < this.n && y >= 0 && y < this.n && z >=0 && z < this.n && w >=0 && w < this.n;
     },
+	
+	package: function() {
+		const x = this.pieces;
+		const pieces = x.map(y => 
+			y.map(z => 
+				z.map(w => 
+					w.map(piece => piece.package())
+				)
+			)
+		);
+		return pieces;
+	},
+	
+	loadPieces: function(piecesArr) {
+		this.graphics.abandon(); // remove all meshes from scene
+		const Graphics = (this.graphics instanceof BoardGraphics) ? BoardGraphics : EmptyBoardGraphics;
+		this.graphics = new Graphics(this) // create new graphics
+		
+		this.pieces = this.initPieces();
+		for (let x = 0; x < this.n; x++) {
+			for (let y = 0; y < this.n; y++) {
+				for(let z = 0; z < this.n; z++) {
+					for(let w = 0; w < this.n; w++) {
+						const read = piecesArr[x][y][z][w];
+						if (read.type) {
+							const PieceConstructor = Piece.typeToConstructor[read.type];
+							let piece = this.spawnPiece(PieceConstructor, read.team, x, y, z, w);
+							Object.assign(piece, read);
+						}
+						
+					}
+				}
+			}
+		}
+	},
     
     test: function(x, y, z, w){
         
@@ -329,7 +364,9 @@ EmptyBoardGraphics.prototype = {
 	
 	setSelectability: function(piece, canMove) {},
 	
-	addToPiecesContainer: function(mesh) {}
+	addToPiecesContainer: function(mesh) {},
+	
+	abandon: function() {}
 	
 }
 
@@ -411,7 +448,7 @@ BoardGraphics.prototype = {
 		}, materialScheme)
 		
         this.hidePossibleMoves();
-        
+		
         locations.forEach(pos => {
 			
 			coordinates = this.boardCoordinates(pos.x, pos.y, pos.z, pos.w)
@@ -440,7 +477,7 @@ BoardGraphics.prototype = {
       
         const locations = this.pieces[x][y][z][w].getPossibleMoves(this.pieces, x, y, z, w)
         
-        this.showPossibleMoves(locations, piece, materialScheme)
+        this.showPossibleMoves(locations, piece, materialScheme, true)
         
     },
     
@@ -502,8 +539,13 @@ BoardGraphics.prototype = {
 		this.piecesContainer.remove(piece.mesh);
 	},
 	
-	respawnMesh: function(piece){
-		this.piecesContainer.add(piece.mesh);
+	respawnMesh: function(piece, x, y, z, w){
+		if (piece.mesh) {
+			this.piecesContainer.add(piece.mesh);
+		} else {
+			piece.mesh = this.createMesh(piece.type, piece.team, x, y, z, w, true);
+		}
+		
 	},
 	
 	setSelectability: function(piece, canMove) {
@@ -512,6 +554,10 @@ BoardGraphics.prototype = {
 	
 	addToPiecesContainer: function(mesh) {
 		this.piecesContainer.add(mesh); 
+	},
+	
+	abandon: function() {
+		scene.remove(this.mesh)
 	}
 	
 }
@@ -520,7 +566,6 @@ BoardGraphics.prototype = {
 function GameBoard(n=4, Graphics=BoardGraphics){
 	
     this.n = n;
-    this.position = new THREE.Vector3(0, 0, 0);
     
 	this.graphics = new Graphics(this);
     this.pieces = this.initPieces();
@@ -537,7 +582,7 @@ function GameBoard(n=4, Graphics=BoardGraphics){
 	};
 }
 
-function BoardGraphics(gameBoard){
+function BoardGraphics(gameBoard) {
 //	EmptyBoardGraphics.call(this, gameBoard);
 	this.gameBoard = gameBoard;
 	this.n = gameBoard.n;

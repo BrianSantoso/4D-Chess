@@ -48,8 +48,9 @@ ClientState.GAME_STATE = new ClientState(
 		controls.noPan = false;
 		controls.update();
 		fixControlsTargetToBox()
-		
-		debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
+		if (debugSphere) {
+			//		debugSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
+		}
 		pointer.keyInputs(scene, camera, gameBoard)
 	},
 
@@ -70,10 +71,9 @@ ClientState.PAUSE = new ClientState(
 
 ClientState.MENU = new ClientState(
 	(() => {
-		let idleMenuRotateVel = 0.5
+		let idleMenuRotateVel = 0.5;
 		return function keyInputs() {
-		
-	//		controls.noPan = true;
+			controls.noPan = true;
 			pointer.clicks = false;
 			pointer.updateDragVector();
 			const dragVector = pointer.dragVector;
@@ -84,11 +84,29 @@ ClientState.MENU = new ClientState(
 			if (dragVector.x == 0 && dragVector.y == 0) {
 				rotateCameraAbout(camera, controls.target, idleMenuRotateVel * step * -1)
 			}
-
-	//		rotateCameraAbout(camera, new THREE.Vector3(0,0,0), step)
 			controls.update();
-		
-		
+		}
+	})(),
+	function update() {},
+	render
+);
+
+ClientState.PLAY_OPTIONS = new ClientState(
+	(() => {
+		let idleMenuRotateVel = 0.5
+		return function keyInputs() {
+			controls.noPan = true;
+			pointer.clicks = false;
+			pointer.updateDragVector();
+			const dragVector = pointer.dragVector;
+			if (dragVector.x != 0) {
+				const direction = dragVector.x / Math.abs(dragVector.x);
+				idleMenuRotateVel = 0.5 * direction;
+			}
+			if (dragVector.x == 0 && dragVector.y == 0) {
+				rotateCameraAbout(camera, controls.target, idleMenuRotateVel * step * -1)
+			}
+			controls.update();
 		}
 	})(),
 	function update() {},

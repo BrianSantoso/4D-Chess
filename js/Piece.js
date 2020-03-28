@@ -1,4 +1,4 @@
-'use strict';
+
 function Piece(team=-1){
     
     this.team = team
@@ -51,7 +51,7 @@ Piece.prototype = {
 			team: this.team,
 			type: this.type,
 			hasMoved: this.hasMoved,
-			justMovedTwoSpaces: this.justMovedTwoSpaces || false
+			justMovedTwoSpaces: this.justMovedTwoSpaces || false,
 		}
 	}
     
@@ -600,3 +600,19 @@ Piece.boardsEqual = function(b0, b1, compareMeshes=false) {
 //	Piece.boardsEqual(gameBoard.pieces, backendBoard.pieces)
 }
 
+Piece.typeToConstructor = {
+	pawn: Pawn,
+	rook: Rook,
+	knight: Knight,
+	bishop: Bishop,
+	queen: Queen,
+	king: King,
+	'': Piece
+}
+
+Piece.from = function(json) {
+	const PieceConstructor = Piece.typeToConstructor[json.type];
+	let newPiece = new PieceConstructor();
+	Object.assign(newPiece, json);
+	return newPiece;
+}
