@@ -2,7 +2,7 @@
 
 
 # 4D Chess
-A fun multiplayer 4D Chess Web game using Three.js and JavaScript
+An Online Multiplayer Web game in JS with Node, React, socket.io, and three.js
 
 Play Online: https://chess4d.herokuapp.com/
 <a href="https://chess4d.herokuapp.com/">![alt tag](https://raw.githubusercontent.com/BrianSantoso/images/master/4D-Chess/4dchessgif.gif)</a>
